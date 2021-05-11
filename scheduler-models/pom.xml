@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.jobscheduler</groupId>
+  <artifactId>scheduler-models</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>scheduler-models</name>
+  <description>Models for Job scheduling system</description>
+  <developers>
+    <developer>
+      <id>saurabh-slacklife</id>
+      <name>Saurabh Saxena</name>
+      <email>saurabh.slacklife@gmail.com</email>
+      <roles>
+        <role></role>
+      </roles>
+    </developer>
+  </developers>
+  <properties>
+    <lombok.version>1.18.20</lombok.version>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>11</source>
+          <target>11</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
