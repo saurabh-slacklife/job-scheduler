@@ -24,13 +24,17 @@ public class TaskStreamProcessor {
 
   @Autowired
   public void process(final StreamsBuilder streamsBuilder) {
+
+//    TODO Add logic for Time based scheduling with validation of input times not less than current utc time
+//    TODO Add logic for Time based scheduling and priority based
+//    TODO Add logic for saving state of job in DB and it's update
     Serde<String> stringSerde = Serdes.String();
     Serde<Task> taskSerde = TaskSerdes.Task();
 
     streamsBuilder
         .stream(this.topic, Consumed.with(stringSerde, taskSerde))
         .foreach((key, data) -> {
-          log.info("Processing task={}",data);
+              log.info("Processing task={}", data);
               taskService.processTask(data);
             }
         );
