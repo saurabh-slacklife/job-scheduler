@@ -1,1 +1,3 @@
+io/jobscheduler/models/TaskStatus.class
 io/jobscheduler/models/Task.class
+io/jobscheduler/models/Priority.class

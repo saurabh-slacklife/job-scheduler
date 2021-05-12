@@ -4,5 +4,5 @@ import io.jobscheduler.scheduler.action.IAction;
 
 public interface ITaskRepository<T> extends IAction<T> {
 
-  boolean save(T data);
+  T save(T data);
 }

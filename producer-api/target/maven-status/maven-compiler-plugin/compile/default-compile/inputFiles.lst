@@ -1,6 +1,9 @@
+/Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/models/resources/JobRequest.java
+/Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/models/document/TaskDocument.java
+/Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/connector/KafkaConnector.java
+/Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/connector/TaskSerializer.java
 /Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/service/ITaskScheduleService.java
 /Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/resources/JobResource.java
-/Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/models/resources/JobRequest.java
 /Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/JobProducerApplication.java
 /Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/errors/ErrorMessages.java
 /Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/errors/JobSchedulingException.java
@@ -8,5 +11,3 @@
 /Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/errors/InvalidRequestException.java
 /Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/errors/InvalidRequestScheduleException.java
 /Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/configuration/KafkaConfiguration.java
-/Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/connector/KafkaConnector.java
-/Users/saurabhsaxena/codeprojects/job-scheduling/producer-api/src/main/java/io/jobscheduler/producer/connector/TaskSerializer.java

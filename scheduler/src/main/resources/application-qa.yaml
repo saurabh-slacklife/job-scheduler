@@ -41,3 +41,8 @@ service:
     semaphore:
       count: 20
       fairness: true
+task:
+  schedule:
+    execution:
+      window: 30
+      delta: 5

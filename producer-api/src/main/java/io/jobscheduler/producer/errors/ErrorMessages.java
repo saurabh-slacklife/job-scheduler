@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum ErrorMessages {
 
   INVALID_REQUEST(400, "Invalid request input"),
-  SCHEDULED_UTC_ELAPSED(400, "Request Scheduled UTC time has elapsed"),
+  SCHEDULED_UTC_ELAPSED(400, "Requested Schedul UTC time has elapsed"),
   KAFKA_ERROR(400, "Unable to process due to Kafka exception");
 
 

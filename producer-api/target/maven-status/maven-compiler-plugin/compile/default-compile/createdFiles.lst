@@ -1,6 +1,7 @@
 io/jobscheduler/producer/models/resources/JobRequest.class
 io/jobscheduler/producer/errors/InvalidRequestScheduleException.class
 io/jobscheduler/producer/service/TaskScheduleServiceImpl.class
+io/jobscheduler/producer/models/document/TaskDocument.class
 io/jobscheduler/producer/configuration/KafkaConfiguration.class
 io/jobscheduler/producer/errors/ErrorMessages.class
 io/jobscheduler/producer/service/ITaskScheduleService.class

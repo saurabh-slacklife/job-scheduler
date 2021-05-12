@@ -37,7 +37,13 @@ service:
         min: 10
         max: 100
         keep-alive: 60
+        termination: 20
   thread:
     semaphore:
       count: 20
       fairness: true
+task:
+  schedule:
+    execution:
+      window: 120
+      delta: 5

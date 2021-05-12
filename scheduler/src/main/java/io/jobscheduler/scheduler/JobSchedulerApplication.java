@@ -1,14 +1,14 @@
 package io.jobscheduler.scheduler;
 
-import java.time.Clock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.web.context.WebServerPortFileWriter;
-import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 @EnableKafkaStreams
 public class JobSchedulerApplication {
 
@@ -19,8 +19,4 @@ public class JobSchedulerApplication {
     application.run(args);
   }
 
-  @Bean
-  public Clock getClock() {
-    return Clock.systemUTC();
-  }
 }

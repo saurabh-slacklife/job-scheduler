@@ -40,15 +40,15 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
-  producer-api :
-    container_name: scheduler-api
-    depends_on:
-      - "broker"
-    build:
-      context: producer-api
-      dockerfile: container_manifests/Dockerfile
-    environment:
-      SERVICE_ENV: 'dev'
-      KAFKA_BOOTSTRAP_SERVERS: 'broker:9092'
-    ports:
-      - "9000:9000"
+#  producer-api :
+#    container_name: scheduler-api
+#    depends_on:
+#      - "broker"
+#    build:
+#      context: producer-api
+#      dockerfile: container_manifests/Dockerfile
+#    environment:
+#      SERVICE_ENV: 'dev'
+#      KAFKA_BOOTSTRAP_SERVERS: 'broker:9092'
+#    ports:
+#      - "9000:9000"

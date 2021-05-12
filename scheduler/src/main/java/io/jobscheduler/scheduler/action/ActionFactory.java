@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 
 public class ActionFactory {
 
+  // TODO Use strategy pattern here and convert Individual <T> to specific model
   final static Map<String, Supplier<IAction>> actionMap = new HashMap<>();
 
   static {
@@ -22,7 +23,6 @@ public class ActionFactory {
     if (supplier != null) {
       return supplier.get();
     }
-
-    throw new IllegalArgumentException("No such dao type " + type);
+    return null;
   }
 }
