@@ -2,25 +2,21 @@ package io.jobscheduler.producer.service;
 
 import io.jobscheduler.models.Task;
 import io.jobscheduler.models.TaskStatus;
+import io.jobscheduler.producer.common.MapperUtil;
 import io.jobscheduler.producer.connector.KafkaConnector;
 import io.jobscheduler.producer.errors.ErrorMessages;
 import io.jobscheduler.producer.errors.InvalidRequestException;
 import io.jobscheduler.producer.errors.InvalidRequestScheduleException;
 import io.jobscheduler.producer.errors.JobSchedulingException;
+import io.jobscheduler.producer.models.Action;
 import io.jobscheduler.producer.models.document.TaskDocument;
 import io.jobscheduler.producer.models.resources.JobRequest;
 import io.jobscheduler.producer.repository.MongoTaskRepositoryImpl;
 import io.jobscheduler.producer.repository.MongoUtil;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Base64;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.KafkaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -36,34 +32,30 @@ public class TaskScheduleServiceImpl implements
   MongoTaskRepositoryImpl mongoTaskRepository;
 
   @Override
-  public String processTask(@NonNull JobRequest jobRequest, String jobType) {
+  public String processTask(@NonNull JobRequest jobRequest, Action jobType) {
     this.validateTask(jobRequest);
-    final Task task = mapper(jobRequest, jobType);
+    final Task task = MapperUtil.jobRequestToTask(jobRequest, jobType);
     final TaskDocument taskDocument = MongoUtil.taskToDocumentMapper(task);
     taskDocument.setTaskStatus(TaskStatus.QUEUED);
     String docId = this.persistJob(taskDocument);
     try {
-      task.setTaskId(docId);
+      task.setJobId(docId);
       this.kafkaConnector.publishTask(jobType, task);
     } catch (JobSchedulingException ex) {
-      taskDocument.setTaskStatus(TaskStatus.SCHEDULED);
-      this.persistJob(taskDocument);
+      this.updateJob(docId, TaskStatus.SCHEDULED,
+          task.getJobScheduleTimeUtc().plusSeconds(20).getEpochSecond());
     }
     return Base64.getEncoder()
         .encodeToString((jobType + ":" + docId).getBytes(StandardCharsets.UTF_8));
   }
 
   private String persistJob(TaskDocument taskDocument) {
-    return this.mongoTaskRepository.save(taskDocument).getId();
+    TaskDocument persistedDoc = this.mongoTaskRepository.save(taskDocument);
+    return persistedDoc != null ? persistedDoc.getId() : "";
   }
 
-  private Task mapper(JobRequest jobRequest, String jobType) {
-    final Task task = new Task();
-    task.setJobType(jobType);
-    task.setTaskRequest(jobRequest.getTaskRequest());
-    task.setPriority(jobRequest.getPriority());
-    task.setJobScheduleTimeUtc(jobRequest.getJobScheduleTimeUtc());
-    return task;
+  private void updateJob(String objectId, TaskStatus updatedStatus, long newScheduledEpoch) {
+    this.mongoTaskRepository.update(objectId, updatedStatus, newScheduledEpoch);
   }
 
   private void validateTask(@NonNull JobRequest jobRequest) {

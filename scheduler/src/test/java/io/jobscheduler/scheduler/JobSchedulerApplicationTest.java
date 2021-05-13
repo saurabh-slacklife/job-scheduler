@@ -5,12 +5,11 @@ import io.jobscheduler.scheduler.components.ExecutorServiceEngine;
 import io.jobscheduler.scheduler.processor.TaskStreamProcessor;
 import io.jobscheduler.scheduler.repository.EsTaskRepositoryImpl;
 import io.jobscheduler.scheduler.repository.MongoTaskRepositoryImpl;
-import io.jobscheduler.scheduler.service.TaskService;
+import io.jobscheduler.scheduler.service.TaskServiceImpl;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.ActiveProfiles;
@@ -18,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@ActiveProfiles({"dev","qa","default","prod"})
+@ActiveProfiles({"dev", "qa", "default", "prod"})
 class JobSchedulerApplicationTest {
 
   @Autowired
@@ -28,8 +27,7 @@ class JobSchedulerApplicationTest {
   private ThreadPoolExecutor priorityThreadPoolExecutor;
 
   @Autowired
-  @Qualifier("taskServiceImpl")
-  private TaskService taskService;
+  private TaskServiceImpl taskService;
 
   @Autowired
   private MongoTaskRepositoryImpl mongoTaskRepository;

@@ -4,10 +4,12 @@ import io.jobscheduler.models.TaskStatus;
 import io.jobscheduler.producer.models.document.TaskDocument;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,8 +28,19 @@ public class MongoTaskRepositoryImpl implements ITaskRepository<TaskDocument> {
   @Override
   public TaskDocument save(TaskDocument data) {
     log.info("Persisting data in Mongo={}", data);
-    data = mongoTemplate.save(data);
-    return data;
+    TaskDocument resultDocument = mongoTemplate.save(data);
+    return resultDocument;
+  }
+
+  public void update(String objectId, TaskStatus status, long newScheduledEpoch) {
+    final Criteria docCriteria = Criteria
+        .where("_id").is(new ObjectId(objectId));
+    final Query query = Query.query(docCriteria);
+    final TaskDocument taskDoc = mongoTemplate.findOne(query, TaskDocument.class);
+
+    taskDoc.setTaskStatus(status);
+    taskDoc.setJobScheduleTimeSeconds(newScheduledEpoch);
+    this.save(taskDoc);
   }
 
   /**

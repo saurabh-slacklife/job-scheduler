@@ -47,16 +47,24 @@ public class TaskServiceImpl implements TaskService<Task> {
 
     if (executionDelaySeconds >= -executionDelta
         && executionDelaySeconds < executionWindowSeconds) {
+      log.info("Submitting task={} to queue", task);
       this.executeTask(task, executionDelaySeconds);
     } else if (executionDelaySeconds >= -executionDelta) {
-      this.persistTask(task);
-      log.info("JobId={} with job={} scheduled at={}", task.getTaskId(), task,
+      this.updateTask(task, TaskStatus.SCHEDULED);
+      log.info("JobId={} with job={} will be scheduled at={}", task.getJobId(), task,
           LocalDateTime
               .ofEpochSecond(task.getJobScheduleTimeUtc().getEpochSecond(), 0,
                   ZoneOffset.UTC));
     } else {
-      log.error(
-          "Job was submitted in past with delta greater than 5 seconds, hence not scheduling");
+      final StringBuilder reason = new StringBuilder();
+      reason.append("JobId=").append(task.getJobId())
+          .append(" with job=").append(task)
+          .append(" was submitted in past at=")
+          .append(LocalDateTime
+              .ofEpochSecond(task.getJobScheduleTimeUtc().getEpochSecond(), 0, ZoneOffset.UTC))
+          .append(" with delta greater=").append(executionDelta).append(", hence not scheduling");
+      this.updateTask(task, TaskStatus.FAILED, reason.toString());
+      log.error(reason.toString());
     }
   }
 
@@ -91,11 +99,16 @@ public class TaskServiceImpl implements TaskService<Task> {
     return executionDelaySeconds;
   }
 
-  public void persistTask(@NonNull Task task) {
+  private void updateTask(@NonNull Task task, TaskStatus taskStatus) {
     if (task != null) {
-      this.mongoTaskRepositoryImpl.update(task.getTaskId(), TaskStatus.SCHEDULED,
+      this.mongoTaskRepositoryImpl.update(task.getJobId(), taskStatus,
           task.getJobScheduleTimeUtc().getEpochSecond());
     }
+  }
 
+  private void updateTask(@NonNull Task task, TaskStatus taskStatus, String reason) {
+    if (task != null) {
+      this.mongoTaskRepositoryImpl.update(task.getJobId(), taskStatus, reason);
+    }
   }
 }

@@ -1,15 +1,14 @@
 package io.jobscheduler.scheduler.repository;
 
-import com.fasterxml.jackson.annotation.JacksonInject.Value;
 import io.jobscheduler.models.TaskStatus;
 import io.jobscheduler.scheduler.models.document.TaskDocument;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,26 +33,37 @@ public class MongoTaskRepositoryImpl implements ITaskRepository<TaskDocument> {
 
   public void update(String objectId, TaskStatus status) {
     final Criteria taskCriteria = Criteria
-        .where("_id").is(objectId);
+        .where("_id").is(new ObjectId(objectId));
     final Query query = Query.query(taskCriteria);
+    final TaskDocument taskDoc = mongoTemplate.findOne(query, TaskDocument.class);
 
-    Update update = new Update();
-    update.set("taskStatus", status);
-
-    mongoTemplate.upsert(query, update, TaskDocument.class);
+    taskDoc.setTaskStatus(status);
+    this.save(taskDoc);
   }
 
-  public void update(String taskId, TaskStatus status, long scheduledTime) {
+  public void update(String objectId, TaskStatus status, long scheduledTime) {
 
-    final Criteria taskCriteria = Criteria
-        .where("_id").is(taskId);
-    final Query query = Query.query(taskCriteria);
+    final Criteria docCriteria = Criteria
+        .where("_id").is(new ObjectId(objectId));
+    final Query query = Query.query(docCriteria);
+    final TaskDocument taskDoc = mongoTemplate.findOne(query, TaskDocument.class);
 
-    Update update = new Update();
-    update.set("taskStatus", status);
-    update.set("jobScheduleTimeSeconds", scheduledTime);
+    taskDoc.setTaskStatus(status);
+    taskDoc.setJobScheduleTimeSeconds(scheduledTime);
+    this.save(taskDoc);
+  }
 
-    mongoTemplate.upsert(query, update, TaskDocument.class);
+  public void update(String objectId, TaskStatus status, String reason) {
+
+    final Criteria docCriteria = Criteria
+        .where("_id").is(new ObjectId(objectId));
+    final Query query = Query.query(docCriteria);
+    final TaskDocument taskDoc = mongoTemplate.findOne(query, TaskDocument.class);
+
+    taskDoc.setTaskStatus(status);
+    taskDoc.setReason(reason);
+
+    this.save(taskDoc);
   }
 
   /**

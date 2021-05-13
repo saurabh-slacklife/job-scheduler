@@ -32,16 +32,19 @@ public class CallableJob implements Runnable {
     try {
       semaphore.acquire();
       if (this.data != null) {
-        log.info("Runnable={} executing with priority={} at={}", this.data.getTaskId(),
+        log.info("Task={} executing with priority={} at={}", this.data,
             this.data.getPriority(), this.data.getJobScheduleTimeUtc());
 
-        this.mongoTaskRepository.update(this.data.getTaskId(), TaskStatus.RUNNING);
-
+        this.mongoTaskRepository.update(this.data.getJobId(), TaskStatus.RUNNING);
+        log.info("JobID={} status updated to={}", this.data.getJobId(), TaskStatus.RUNNING);
 
         final var actor = ActionFactory.getActor(this.data.getJobType());
         isActionCompleted = actor.act(this.data);
-
-        this.mongoTaskRepository.update(this.data.getTaskId(), TaskStatus.SUCCESS);
+        if (isActionCompleted) {
+          this.mongoTaskRepository.update(this.data.getJobId(), TaskStatus.SUCCESS);
+        } else {
+          this.mongoTaskRepository.update(this.data.getJobId(), TaskStatus.FAILED);
+        }
 
       }
     } catch (InterruptedException e) {
@@ -49,9 +52,5 @@ public class CallableJob implements Runnable {
     } finally {
       semaphore.release();
     }
-  }
-
-  public Task getData() {
-    return data;
   }
 }

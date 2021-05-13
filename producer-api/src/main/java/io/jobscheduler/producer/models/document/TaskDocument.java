@@ -5,6 +5,7 @@ import io.jobscheduler.models.TaskStatus;
 import java.util.Map;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "TaskDocument")
@@ -12,12 +13,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 public class TaskDocument {
 
+  @Id
   private String id;
+  private String requestId;
   private String jobType;
-  private String taskId;
   private Map<String, String> taskRequest;
   private long jobScheduleTimeSeconds;
   private Priority priority;
   private TaskStatus taskStatus;
+  private String reason;
 
 }

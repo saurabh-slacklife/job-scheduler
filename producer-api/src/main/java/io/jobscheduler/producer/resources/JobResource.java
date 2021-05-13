@@ -3,6 +3,7 @@ package io.jobscheduler.producer.resources;
 import io.jobscheduler.producer.errors.InvalidRequestException;
 import io.jobscheduler.producer.errors.InvalidRequestScheduleException;
 import io.jobscheduler.producer.errors.JobSchedulingException;
+import io.jobscheduler.producer.models.Action;
 import io.jobscheduler.producer.models.resources.JobRequest;
 import io.jobscheduler.producer.service.ITaskScheduleService;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,8 +30,8 @@ public class JobResource {
   }
 
   @PostMapping("/job/{jobType}")
-  public ResponseEntity createJob(@RequestBody JobRequest jobRequest,
-      @PathVariable String jobType) {
+  public ResponseEntity createJob(@Validated @RequestBody JobRequest jobRequest,
+      @PathVariable Action jobType) {
     try {
       log.info("request for:{}", jobRequest.toString());
       String jobId = taskScheduleService.processTask(jobRequest, jobType);

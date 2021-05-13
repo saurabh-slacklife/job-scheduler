@@ -13,9 +13,10 @@ public class ActionFactory {
   final static Map<String, Supplier<IAction>> actionMap = new HashMap<>();
 
   static {
-    actionMap.put("elastic-search", EsTaskRepositoryImpl::new);
-    actionMap.put("mongo", MongoTaskRepositoryImpl::new);
-    actionMap.put("push-notification", PushNotificationActionImpl::new);
+    actionMap.put(Action.index.name(), EsTaskRepositoryImpl::new);
+    actionMap.put(Action.save.name(), MongoTaskRepositoryImpl::new);
+    actionMap.put(Action.push_notification.name(), PushNotificationActionImpl::new);
+    actionMap.put(Action.email.name(), SendEmail::new);
   }
 
   public static IAction getActor(String type) {

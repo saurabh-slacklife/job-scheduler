@@ -34,7 +34,6 @@ public class TaskStreamProcessor {
     streamsBuilder
         .stream(this.topic, Consumed.with(stringSerde, taskSerde))
         .foreach((key, data) -> {
-              log.info("Processing task={}", data);
               taskService.processTask(data);
             }
         );

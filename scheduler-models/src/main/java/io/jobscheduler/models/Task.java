@@ -10,7 +10,8 @@ import lombok.Data;
 public class Task implements Serializable {
 
   private String jobType;
-  private String taskId;
+  private String jobId;
+  private String requestId;
   private Map<String, String> taskRequest;
   private Instant jobScheduleTimeUtc;
   private Priority priority;

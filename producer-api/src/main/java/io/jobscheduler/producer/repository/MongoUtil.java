@@ -10,20 +10,22 @@ public class MongoUtil {
 
   public static TaskDocument taskToDocumentMapper(@NonNull Task task) {
     final TaskDocument taskDocument = new TaskDocument();
-    taskDocument.setTaskId(task.getTaskId());
+    taskDocument.setRequestId(task.getRequestId());
     taskDocument.setTaskRequest(task.getTaskRequest());
-    taskDocument.setJobType(task.getJobType());
     taskDocument.setJobScheduleTimeSeconds(task.getJobScheduleTimeUtc().getEpochSecond());
     taskDocument.setPriority(task.getPriority());
+    taskDocument.setJobType(task.getJobType());
+
     return taskDocument;
   }
 
   public static Task documentToTaskMapper(@NonNull TaskDocument taskDocument) {
     final Task task = new Task();
-    task.setTaskId(taskDocument.getTaskId());
-    task.setJobType(taskDocument.getJobType());
-    task.setPriority(taskDocument.getPriority());
+    task.setRequestId(taskDocument.getRequestId());
     task.setTaskRequest(taskDocument.getTaskRequest());
+    task.setPriority(taskDocument.getPriority());
+    task.setJobType(taskDocument.getJobType());
+    task.setJobId(taskDocument.getId());
 
     final LocalDateTime localDateTime = LocalDateTime
         .ofEpochSecond(taskDocument.getJobScheduleTimeSeconds(), 0,

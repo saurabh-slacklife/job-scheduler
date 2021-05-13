@@ -4,6 +4,7 @@ import io.jobscheduler.models.Task;
 import io.jobscheduler.producer.configuration.KafkaConfiguration;
 import io.jobscheduler.producer.errors.ErrorMessages;
 import io.jobscheduler.producer.errors.JobSchedulingException;
+import io.jobscheduler.producer.models.Action;
 import java.time.Duration;
 import java.util.concurrent.Future;
 import javax.annotation.PreDestroy;
@@ -28,9 +29,9 @@ public class KafkaConnector {
     this.topicName = kafkaConfiguration.getTopicName();
   }
 
-  public void publishTask(String key, Task task) {
+  public void publishTask(Action key, Task task) {
     ProducerRecord<String, Task> record = new ProducerRecord<>(
-        this.topicName, key, task);
+        this.topicName, key.name(), task);
     try {
       producer.send(record);
     } catch (KafkaException ex) {

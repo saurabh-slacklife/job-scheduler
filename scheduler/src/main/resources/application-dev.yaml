@@ -43,6 +43,12 @@ service:
       count: 20
       fairness: true
 task:
+  daemon:
+    execution:
+      interval: 30000
+      query:
+        start-interval: 10
+        elapsed-interval: 50
   schedule:
     execution:
       window: 120
