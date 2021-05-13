@@ -30,7 +30,7 @@ public class DaemonTaskScheduler {
   @Value("${task.daemon.execution.query.elapsed-interval}")
   private long elapsedInterval;
 
-  //  fixedRate of 30 seconds from last invocation to start of next
+  //  fixedRate of elapsedInterval seconds from last invocation to start of next
   @Scheduled(fixedRateString="${task.daemon.execution.interval}")
   public void scheduleTask() {
 

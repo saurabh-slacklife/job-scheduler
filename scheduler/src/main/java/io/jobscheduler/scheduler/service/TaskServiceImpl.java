@@ -1,5 +1,6 @@
 package io.jobscheduler.scheduler.service;
 
+import io.jobscheduler.models.Priority;
 import io.jobscheduler.models.Task;
 import io.jobscheduler.models.TaskStatus;
 import io.jobscheduler.scheduler.repository.MongoTaskRepositoryImpl;
@@ -14,6 +15,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,14 @@ public class TaskServiceImpl implements TaskService<Task> {
   @Value("${task.schedule.execution.delta}")
   private long executionDelta;
 
-  public TaskServiceImpl(@Autowired ScheduledThreadPoolExecutor jobScheduledThreadPoolExecutor,
+  @Value("${task.schedule.execution.high.priority}")
+  private long highPriorityTs;
+
+  @Value("${task.schedule.execution.medium.priority}")
+  private long mediumPriorityTs;
+
+  public TaskServiceImpl(
+      @Autowired @Qualifier("jobScheduledThreadPoolExecutor") ScheduledThreadPoolExecutor jobScheduledThreadPoolExecutor,
       @Autowired MongoTaskRepositoryImpl mongoTaskRepositoryImpl,
       @Value("${service.thread.semaphore.count}") int semaphoreCount,
       @Value("${service.thread.semaphore.fairness:true}") boolean fairness) {
@@ -43,14 +52,36 @@ public class TaskServiceImpl implements TaskService<Task> {
 
   @Override
   public void processTask(Task task) {
+// TODO As of now the Algorithm is defined for High and default Low priority tasks
+    switch (task.getPriority()) {
+      case HIGH:
+        executeHighPriorityTask(task);
+        break;
+      default:
+        executeDefaultPriorityTask(task);
+        break;
+    }
+  }
+
+  private void executeHighPriorityTask(Task task) {
+    log.info("Submitting High priority with delay={} task={} to queue", highPriorityTs, task);
+    task.setJobScheduleTimeUtc(Clock.systemUTC().instant().plusSeconds(highPriorityTs));
+    this.executeTask(task, highPriorityTs);
+  }
+
+  private void executeDefaultPriorityTask(Task task) {
     long executionDelaySeconds = computeExecutionDelayTime(task);
 
     if (executionDelaySeconds >= -executionDelta
         && executionDelaySeconds < executionWindowSeconds) {
       log.info("Submitting task={} to queue", task);
+
       this.executeTask(task, executionDelaySeconds);
+
     } else if (executionDelaySeconds >= -executionDelta) {
+
       this.updateTask(task, TaskStatus.SCHEDULED);
+
       log.info("JobId={} with job={} will be scheduled at={}", task.getJobId(), task,
           LocalDateTime
               .ofEpochSecond(task.getJobScheduleTimeUtc().getEpochSecond(), 0,
@@ -67,6 +98,7 @@ public class TaskServiceImpl implements TaskService<Task> {
       log.error(reason.toString());
     }
   }
+
 
   /**
    * Execute the task with this executionDelaySeconds {@link #computeExecutionDelayTime}
