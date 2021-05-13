@@ -1,7 +1,7 @@
-package io.jobscheduler.producer.repository;
+package io.jobscheduler.dashboard.repository;
 
-import io.jobscheduler.models.TaskStatus;
-import io.jobscheduler.producer.models.document.TaskDocument;
+import io.jobscheduler.dashboard.models.Action;
+import io.jobscheduler.dashboard.models.document.TaskDocument;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -9,38 +9,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class MongoTaskRepositoryImpl implements ITaskRepository<TaskDocument> {
 
-  @Autowired
   private MongoTemplate mongoTemplate;
 
-  /**
-   * Persist taskDocument
-   *
-   * @param data {@link TaskDocument}
-   * @return boolean
-   */
-  @Override
-  public TaskDocument save(TaskDocument data) {
-    log.info("Persisting data in Mongo={}", data);
-    TaskDocument resultDocument = mongoTemplate.save(data);
-    return resultDocument;
+  public MongoTaskRepositoryImpl(@Autowired MongoTemplate mongoTemplate){
+    this.mongoTemplate = mongoTemplate;
   }
 
-  public void update(String objectId, TaskStatus status, long newScheduledEpoch) {
+  @Override
+  public List<TaskDocument> findByJobType(Action jobType) {
     final Criteria docCriteria = Criteria
-        .where("_id").is(new ObjectId(objectId));
+        .where("jobType").is(jobType);
     final Query query = Query.query(docCriteria);
-    final TaskDocument taskDoc = mongoTemplate.findOne(query, TaskDocument.class);
+    return mongoTemplate.find(query, TaskDocument.class);
+  }
 
-    taskDoc.setTaskStatus(status);
-    taskDoc.setJobScheduleTimeSeconds(newScheduledEpoch);
-    this.save(taskDoc);
+  @Override
+  public TaskDocument findById(String jobId) {
+    final Criteria docCriteria = Criteria
+        .where("_id").is(new ObjectId(jobId));
+    final Query query = Query.query(docCriteria);
+    return mongoTemplate.findOne(query, TaskDocument.class);
   }
 
   /**
@@ -50,11 +44,11 @@ public class MongoTaskRepositoryImpl implements ITaskRepository<TaskDocument> {
    * @param elapsedTime exclusive
    * @return List<TaskDocument>
    */
-  public List<TaskDocument> getDocumentsByScheduledTime(long startTime, long elapsedTime) {
+  @Override
+  public List<TaskDocument> findByScheduledTime(long startTime, long elapsedTime) {
     final Criteria docCriteria = Criteria
-        .where("taskStatus").is(TaskStatus.SCHEDULED)
+        .where("jobScheduleTimeSeconds").gte(startTime)
         .andOperator(
-            Criteria.where("jobScheduleTimeSeconds").gte(startTime),
             Criteria.where("jobScheduleTimeSeconds").lt(elapsedTime)
         );
     final Query query = Query.query(docCriteria);

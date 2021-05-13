@@ -48,7 +48,7 @@ public class JobResource {
   private HttpHeaders generateHeaders(String jobId) {
     HttpHeaders httpHeaders = new HttpHeaders();
     httpHeaders.setCacheControl(CacheControl.noStore());
-    httpHeaders.add("Location", "api/status/job/" + jobId);
+    httpHeaders.add("Location", "/api/job/status/" + jobId);
     httpHeaders.add("Retry-After", "2");
     return httpHeaders;
   }

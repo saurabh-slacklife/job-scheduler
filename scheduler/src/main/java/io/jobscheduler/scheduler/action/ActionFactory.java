@@ -1,8 +1,6 @@
 package io.jobscheduler.scheduler.action;
 
 import io.jobscheduler.scheduler.notification.PushNotificationActionImpl;
-import io.jobscheduler.scheduler.repository.EsTaskRepositoryImpl;
-import io.jobscheduler.scheduler.repository.MongoTaskRepositoryImpl;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -13,8 +11,9 @@ public class ActionFactory {
   final static Map<String, Supplier<IAction>> actionMap = new HashMap<>();
 
   static {
-    actionMap.put(Action.index.name(), EsTaskRepositoryImpl::new);
-    actionMap.put(Action.save.name(), MongoTaskRepositoryImpl::new);
+//    TODO update these actions
+    actionMap.put(Action.index.name(), PushNotificationActionImpl::new);
+    actionMap.put(Action.save.name(), PushNotificationActionImpl::new);
     actionMap.put(Action.push_notification.name(), PushNotificationActionImpl::new);
     actionMap.put(Action.email.name(), SendEmail::new);
   }

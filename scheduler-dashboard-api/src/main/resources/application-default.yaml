@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: job-scheduler-dashboard-api
+  data:
+    mongodb:
+      host: ${MONGO_HOST:localhost}
+      port: ${MONGO_PORT:27017}
+      database: ${MONGO_DB:test}
+      authentication-database: ${MONGO_AUTH_DB:admin}
+      username: ${MONGO_USER:root}
+      password: ${MONGO_PASSWORD:example}
+      repositories:
+        enable: true
+      max-size: 3
+      min-size: 1
+      max-wait-ms: 6000
+      max-idle-ms: 6000
+management:
+  endpoints:
+    enabled-by-default: true
+server:
+  port: ${SERVER_PORT:9001}
+  error:
+    include-message: always
+  compression:
+    enabled: true
+    mime-types: application/json
+  tomcat:
+    accesslog:
+      enables: true
+    uri-encoding: UTF-8
+    threads:
+      max-connections: 8192
+      max: 200
+      min-spare: 30

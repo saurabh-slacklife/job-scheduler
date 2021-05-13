@@ -10,10 +10,10 @@
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>io.jobscheduler</groupId>
-  <artifactId>producer-api</artifactId>
+  <artifactId>job-scheduler-dashboard-api</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>producer-api</name>
-  <description>Producer API</description>
+  <name>job-scheduler-dashboard-api</name>
+  <description>Dashboard API for Scheduler System</description>
   <developers>
     <developer>
       <id>saurabh-slacklife</id>
@@ -29,8 +29,6 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <spring.version>2.4.5</spring.version>
-    <kafka.version>2.7.0</kafka.version>
-    <spring.kafka.version>2.6.7</spring.kafka.version>
     <lombok.version>1.18.20</lombok.version>
   </properties>
   <dependencies>
@@ -43,11 +41,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
       <version>${spring.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka-streams</artifactId>
-      <version>${kafka.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -82,7 +75,7 @@
         <executions>
           <execution>
             <configuration>
-              <mainClass>io.jobscheduler.io.scheduler.JobProducerApplication</mainClass>
+              <mainClass>io.jobscheduler.dashboard.JobSchedulerDashboardApplication</mainClass>
               <layout>JAR</layout>
             </configuration>
             <goals>

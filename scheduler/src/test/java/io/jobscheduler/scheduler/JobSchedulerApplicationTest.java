@@ -3,7 +3,6 @@ package io.jobscheduler.scheduler;
 import io.jobscheduler.scheduler.components.DaemonTaskScheduler;
 import io.jobscheduler.scheduler.components.ExecutorServiceEngine;
 import io.jobscheduler.scheduler.processor.TaskStreamProcessor;
-import io.jobscheduler.scheduler.repository.EsTaskRepositoryImpl;
 import io.jobscheduler.scheduler.repository.MongoTaskRepositoryImpl;
 import io.jobscheduler.scheduler.service.TaskServiceImpl;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -42,9 +41,6 @@ class JobSchedulerApplicationTest {
   private TaskStreamProcessor taskStreamProcessor;
 
   @Autowired
-  private EsTaskRepositoryImpl esTaskRepository;
-
-  @Autowired
   private MongoTemplate mongoTemplate;
 
   @Test
@@ -56,7 +52,6 @@ class JobSchedulerApplicationTest {
     assertThat(jobScheduledThreadPoolExecutor).isNotNull();
     assertThat(executorServiceEngine).isNotNull();
     assertThat(taskStreamProcessor).isNotNull();
-    assertThat(esTaskRepository).isNotNull();
     assertThat(mongoTemplate).isNotNull();
 
   }

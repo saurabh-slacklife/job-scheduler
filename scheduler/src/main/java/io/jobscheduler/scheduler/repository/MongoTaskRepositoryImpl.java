@@ -83,12 +83,4 @@ public class MongoTaskRepositoryImpl implements ITaskRepository<TaskDocument> {
     final Query query = Query.query(taskCriteria);
     return mongoTemplate.find(query, TaskDocument.class);
   }
-
-
-  @Override
-  public boolean act(TaskDocument task) {
-    return this.save(task) != null;
-  }
-
-
 }
