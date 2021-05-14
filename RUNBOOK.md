@@ -4,15 +4,12 @@
 
 * [Pre requisites](#pre-requisites)
 * [Steps](#steps)
-    * [Build, install and package all binaries/jar](#1-Build-install-and-package-all-binaries-jar)
+    * [Build, install and package all binaries/jar](#1.-Build-install-and-package-all-binaries/jar)
     * [Run all services via Docker Compose](#2-run-all-services-via-docker-compose)
     * [Create broker topic with specified partition and replication](#3-create-broker-topic-with-specified-partition-and-replication)
     * [Produce jobs to Scheduling system via Producer API](#4-produce-jobs-to-scheduling-system-via-producer-api)
     * [Stop all services](#5-stop-all-services)
-* [Logs](#logs)
-    * [Local system](#local-system)
-    * [Docker](#docker)
-
+  
 ### Pre requisites
 
 1. JDK 11.
@@ -41,13 +38,13 @@
   docker-compose:
 
 ```shell
-   docker compose -f docker-compose.yml up --build
+docker compose -f docker-compose.yml up --build
 ```
 
 Or as docker daemon:
 
 ```shell
-   docker compose -f docker-compose.yml up -d --build
+docker compose -f docker-compose.yml up -d --build
 ```
 
 #### 3. Create broker topic with specified partition and replication
@@ -59,7 +56,7 @@ The system produces and listens on topic **`job-task-system`**. The below comman
 3. with partitions: `3`
 
 ```shell
-  docker-compose exec broker kafka-topics --create --topic job-task-system --bootstrap-server broker:9092 --replication-factor 1 --partitions 3
+docker-compose exec broker kafka-topics --create --topic job-task-system --bootstrap-server broker:9092 --replication-factor 1 --partitions 3
 ```
 
 ### 4. Produce jobs to Scheduling system via Producer API
@@ -73,10 +70,14 @@ The system produces and listens on topic **`job-task-system`**. The below comman
 * Working directory: **job-scheduling**
 * Execute below docker compose command:
   ```shell
-    docker compose -f docker-compose.yml stop
+  docker compose -f docker-compose.yml stop
   ```
 
-#### Mongo DB Connection String
+#### Kafka Connection String from local machine
+* KAFKA_BOOTSTRAP_SERVERS: localhost:29092
+
+
+#### Mongo DB Connection String from local machine
 
 * MongoDB Host: localhost
 * MongoDB port: 27017
@@ -84,5 +85,5 @@ The system produces and listens on topic **`job-task-system`**. The below comman
 * Password: example
 * Authentication Database: admin
   ```shell
-    mongodb://root:example@localhost:27017/?authSource=admin&readPreference=primary&ssl=false
+  mongodb://root:example@localhost:27017/?authSource=admin&readPreference=primary&ssl=false
    ```

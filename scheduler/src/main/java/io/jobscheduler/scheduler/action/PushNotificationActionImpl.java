@@ -1,13 +1,11 @@
-package io.jobscheduler.scheduler.notification;
+package io.jobscheduler.scheduler.action;
 
 import io.jobscheduler.models.Task;
-import io.jobscheduler.scheduler.models.notification.TaskNotification;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PushNotificationActionImpl implements INotification<Task> {
 
-  //TODO Change Task to ES specific Index
   @Override
   public boolean act(Task data) {
     return this.sendNotification(data) != null;

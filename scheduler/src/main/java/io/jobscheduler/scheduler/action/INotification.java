@@ -1,4 +1,4 @@
-package io.jobscheduler.scheduler.notification;
+package io.jobscheduler.scheduler.action;
 
 import io.jobscheduler.scheduler.action.IAction;
 

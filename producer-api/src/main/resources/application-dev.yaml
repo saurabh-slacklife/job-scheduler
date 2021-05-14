@@ -19,6 +19,7 @@ management:
   endpoints:
     enabled-by-default: true
 logging:
+  file: /tmp/job-producer.log
   level:
     root: INFO
 server:
