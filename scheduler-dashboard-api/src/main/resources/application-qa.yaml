@@ -3,9 +3,9 @@ spring:
     name: job-scheduler-dashboard-api
   data:
     mongodb:
-      host: ${MONGO_HOST:localhost}
+      host: ${MONGO_HOST:mongo}
       port: ${MONGO_PORT:27017}
-      database: ${MONGO_DB:test}
+      database: ${MONGO_DB:scheduling-jobs}
       authentication-database: ${MONGO_AUTH_DB:admin}
       username: ${MONGO_USER:root}
       password: ${MONGO_PASSWORD:example}
@@ -15,9 +15,12 @@ spring:
       min-size: 1
       max-wait-ms: 6000
       max-idle-ms: 6000
-management:
-  endpoints:
-    enabled-by-default: true
+logging:
+  level:
+    root: INFO
+  file:
+    path: "/tmp/job-dashboard-api/"
+    name: "application.log"
 server:
   port: ${SERVER_PORT:9001}
   error:

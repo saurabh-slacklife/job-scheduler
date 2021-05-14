@@ -15,6 +15,7 @@ import io.jobscheduler.producer.repository.MongoTaskRepositoryImpl;
 import io.jobscheduler.producer.repository.MongoUtil;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.time.ZoneOffset;
 import java.util.Base64;
 import org.apache.kafka.common.KafkaException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +66,7 @@ public class TaskScheduleServiceImpl implements
     }
 
     if (null != jobRequest.getJobScheduleTimeUtc() && Clock.systemUTC().instant()
-        .isAfter(jobRequest.getJobScheduleTimeUtc())) {
+        .isAfter(jobRequest.getJobScheduleTimeUtc().toInstant(ZoneOffset.UTC))) {
       throw new InvalidRequestScheduleException(
           ErrorMessages.SCHEDULED_UTC_ELAPSED.getErrorMessage(),
           ErrorMessages.SCHEDULED_UTC_ELAPSED.getErrorCode());

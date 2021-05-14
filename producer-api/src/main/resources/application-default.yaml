@@ -3,9 +3,9 @@ spring:
     name: job-scheduler-api
   data:
     mongodb:
-      host: ${MONGO_HOST:localhost}
+      host: ${MONGO_HOST:mongo}
       port: ${MONGO_PORT:27017}
-      database: ${MONGO_DB:test}
+      database: ${MONGO_DB:scheduling-jobs}
       authentication-database: ${MONGO_AUTH_DB:admin}
       username: ${MONGO_USER:root}
       password: ${MONGO_PASSWORD:example}
@@ -18,6 +18,9 @@ spring:
 management:
   endpoints:
     enabled-by-default: true
+logging:
+  level:
+    root: INFO
 server:
   port: ${SERVER_PORT:9000}
   error:
@@ -34,7 +37,7 @@ server:
       max: 200
       min-spare: 30
 kafka:
-  bootstrap-server: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  bootstrap-server: ${KAFKA_BOOTSTRAP_SERVERS:broker:9092}
   topic-name: ${KAFKA_JOB_TOPIC:job-task-system}
   acks: ${KAFKA_ACKS:all}
   key-serializer: org.apache.kafka.common.serialization.StringSerializer

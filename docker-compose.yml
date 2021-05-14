@@ -1,5 +1,5 @@
 ---
-version: '2'
+version: '3'
 
 services:
   zookeeper:
@@ -31,6 +31,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
   mongo:
+    container_name: mongo
     image: mongo
     hostname: mongo
     restart: always
@@ -40,15 +41,38 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
-#  producer-api :
-#    container_name: scheduler-api
-#    depends_on:
-#      - "broker"
-#    build:
-#      context: producer-api
-#      dockerfile: container_manifests/Dockerfile
-#    environment:
-#      SERVICE_ENV: 'dev'
-#      KAFKA_BOOTSTRAP_SERVERS: 'broker:9092'
-#    ports:
-#      - "9000:9000"
+  producer-api:
+    container_name: producer-api
+    depends_on:
+      - "broker"
+      - "mongo"
+    build:
+      context: producer-api
+      dockerfile: container_manifests/Dockerfile
+      args:
+        APPLICATION_ENV: dev
+    ports:
+      - "9000:9000"
+
+  scheduler:
+    container_name: scheduler
+    depends_on:
+      - "broker"
+      - "mongo"
+    build:
+      context: scheduler
+      dockerfile: container_manifests/Dockerfile
+      args:
+        APPLICATION_ENV: dev
+
+  scheduler-dashboard-api:
+    container_name: scheduler-dashboard-api
+    depends_on:
+      - "mongo"
+    build:
+      context: scheduler-dashboard-api
+      dockerfile: container_manifests/Dockerfile
+      args:
+        APPLICATION_ENV: dev
+    ports:
+      - "9001:9001"

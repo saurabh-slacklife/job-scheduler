@@ -15,6 +15,7 @@ public class MongoUtil {
     jobResponse.setJobRequest(taskDocument.getTaskRequest());
     jobResponse.setPriority(taskDocument.getPriority());
     jobResponse.setJobType(taskDocument.getJobType());
+    jobResponse.setJobStatus(taskDocument.getTaskStatus());
 
     final LocalDateTime localDateTime = LocalDateTime
         .ofEpochSecond(taskDocument.getJobScheduleTimeSeconds(), 0,

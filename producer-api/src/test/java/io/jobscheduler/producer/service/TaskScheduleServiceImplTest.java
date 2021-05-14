@@ -13,6 +13,7 @@ import io.jobscheduler.producer.models.resources.JobRequest;
 import io.jobscheduler.producer.repository.MongoTaskRepositoryImpl;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,8 +59,11 @@ class TaskScheduleServiceImplTest {
 
   @BeforeEach
   void setUpJobRequest() {
-    jobRequest = new JobRequest("taskID", new HashMap<>(), Clock.systemUTC()
-        .instant().plusSeconds(10));
+    final LocalDateTime localDateTime = LocalDateTime.now(Clock.systemUTC()).plusSeconds(10);
+    jobRequest = new JobRequest();
+    jobRequest.setTaskRequest(new HashMap<>());
+    jobRequest.setRequestId("taskID");
+    jobRequest.setJobScheduleTimeUtc(localDateTime);
   }
 
   @Test
@@ -102,7 +106,8 @@ class TaskScheduleServiceImplTest {
 
   @Test
   void whenTaskPastScheduledTime_validateThrowException() {
-    jobRequest.setJobScheduleTimeUtc(Clock.systemDefaultZone().instant().minusSeconds(10));
+    final LocalDateTime localDateTime = LocalDateTime.now(Clock.systemUTC()).minusSeconds(10);
+    jobRequest.setJobScheduleTimeUtc(localDateTime);
     InvalidRequestScheduleException ex = assertThrows(InvalidRequestScheduleException.class,
         () -> taskScheduleService
             .processTask(jobRequest, Action.email));

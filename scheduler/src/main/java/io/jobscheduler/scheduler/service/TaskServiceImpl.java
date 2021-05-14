@@ -28,16 +28,16 @@ public class TaskServiceImpl implements TaskService<Task> {
   private Semaphore semaphore;
   private MongoTaskRepositoryImpl mongoTaskRepositoryImpl;
 
-  @Value("${task.schedule.execution.window}")
+  @Value("${task.schedule.execution.window-ts}")
   private long executionWindowSeconds;
 
-  @Value("${task.schedule.execution.delta}")
+  @Value("${task.schedule.execution.delta-ts}")
   private long executionDelta;
 
-  @Value("${task.schedule.execution.high.priority}")
+  @Value("${task.schedule.execution.high.priority-ts}")
   private long highPriorityTs;
 
-  @Value("${task.schedule.execution.medium.priority}")
+  @Value("${task.schedule.execution.medium.priority-ts}")
   private long mediumPriorityTs;
 
   public TaskServiceImpl(

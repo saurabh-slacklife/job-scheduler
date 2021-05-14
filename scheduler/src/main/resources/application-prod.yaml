@@ -3,7 +3,7 @@ spring:
     name: job-scheduler
   data:
     mongodb:
-      host: ${MONGO_HOST:localhost}
+      host: ${MONGO_HOST:mongo}
       port: ${MONGO_PORT:27017}
       database: ${MONGO_DB:test}
       authentication-database: ${MONGO_AUTH_DB:admin}
@@ -17,11 +17,11 @@ spring:
       max-idle-ms: 6000
   kafka:
     streams:
-      application-id: ${KAFKA_JOB_TOPIC:job-task-scheduler}
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+      application-id: ${KAFKA_JOB_TOPIC:job-task-system}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:broker:9092}
     consumer:
-      groupId: ${KAFKA_JOB_TOPIC:job-task-scheduler}
-      topic: ${KAFKA_JOB_TOPIC:job-task-system-dev}
+      groupId: ${KAFKA_JOB_TOPIC:job-task-system}
+      topic: ${KAFKA_JOB_TOPIC:job-task-system}
       enable-auto-commit: false
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.jobscheduler.scheduler.serde.TaskDeserializer
@@ -30,6 +30,9 @@ spring:
         endpoint:
           identification:
             algorithm: http
+logging:
+  level:
+    root: INFO
 service:
   executor:
     core:
@@ -37,12 +40,23 @@ service:
         min: 10
         max: 100
         keep-alive: 60
+        termination: 20
   thread:
     semaphore:
       count: 20
       fairness: true
 task:
+  daemon:
+    execution:
+      interval: 30000
+      query:
+        start-interval: 10
+        elapsed-interval: 50
   schedule:
     execution:
-      window: 30
-      delta: 5
+      window-ts: 30
+      delta-ts: 5
+      high:
+        priority-ts: 5
+      medium:
+        priority-ts: 10
