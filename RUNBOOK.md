@@ -4,7 +4,7 @@
 
 * [Pre requisites](#pre-requisites)
 * [Steps](#steps)
-    * [Build, install and package all binaries/jar](#1-build-install-and-package-all-binaries/jar)
+    * [Build, install and package all binaries/jar](#1.-Build-install-and-package-all-binaries/jar)
     * [Run all services via Docker Compose](#2-run-all-services-via-docker-compose)
     * [Create broker topic with specified partition and replication](#3-create-broker-topic-with-specified-partition-and-replication)
     * [Produce jobs to Scheduling system via Producer API](#4-produce-jobs-to-scheduling-system-via-producer-api)
