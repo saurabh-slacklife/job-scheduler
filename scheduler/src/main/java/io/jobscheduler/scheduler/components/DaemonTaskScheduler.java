@@ -34,7 +34,7 @@ public class DaemonTaskScheduler {
   @Scheduled(fixedRateString="${task.daemon.execution.interval}")
   public void scheduleTask() {
 
-    Instant now = Clock.systemUTC().instant();
+    Instant now = Instant.now();
     long startSeconds = now.minusSeconds(startInterval).getEpochSecond();
     long elapsedSeconds = now.plusSeconds(elapsedInterval).getEpochSecond();
     final List<TaskDocument> documentsByScheduledTime = this.mongoTaskRepositoryImpl

@@ -1,0 +1,26 @@
+
+name: Maven and Docker Build
+
+on:
+  push:
+    branches: [ main, feature/*, bug/* ]
+  pull_request:
+    branches: [ main, feature/*, bug/* ]
+
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  maven-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Maven build all modules
+        run: ./scripts/build.sh
+  docker-build:
+    needs: maven-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker build all modules
+        run: docker compose -f docker-compose.yml build --parallel --no-cache --compress

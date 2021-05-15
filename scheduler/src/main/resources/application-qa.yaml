@@ -54,7 +54,7 @@ task:
         elapsed-interval: 50
   schedule:
     execution:
-      window-ts: 30
+      window-ts: 120
       delta-ts: 5
       high:
         priority-ts: 5

@@ -52,7 +52,7 @@ public class TaskServiceImpl implements TaskService<Task> {
 
   @Override
   public void processTask(Task task) {
-// TODO As of now the Algorithm is defined for High and default Low priority tasks
+// TODO As of now the Algorithm is defined for High and default Low/Medium are handled same priority tasks
     switch (task.getPriority()) {
       case HIGH:
         executeHighPriorityTask(task);

@@ -7,6 +7,8 @@
     * [Assumptions](#assumptions)
     * [Design Aspects](#design-aspects)
         * [Algorithm](#algorithm)
+        * [Job States](#job-states)
+        * [System Configuration and Tuning](#system-configuration-and-tuning)
         * [Sequence Diagram](#sequence-diagram)
         * [Flow chart](#flow-chart)
         * [UML Diagram](#uml-diagram)
@@ -28,39 +30,49 @@
 2. The scheduled time is always of Future.
 3. All services run in UTC timezone and tasks are required to be submitted in UTZ only. Though there
    isn’t any validation to check if the supplied time zone is not UTC.
+4. Additional state, SCHEDULED, is added for consistency.
 
 #### Design Aspects
 
-* **Flexibility** - The flexibility of multiple job types is achieved by using a generic request
-  object to be executed based on type. Though of how to handle the newAction needs to be
-  implemented.
-    1. Based on Action type in Post request
-    2. Based upon Strategy, Command and chain of responsibility.
+* **Flexibility** - Below are the factors which describes flexibility of submitting and execution of
+  multiple job
+    1. Based on Action type in Post request in path variable
+    2. New Actions can be defined in the system with their corresponding handling.
+    3. The Request body is generic - the body of request is defined by Map<String, String>.
+
+[comment]: <> (Handle below, once code is updated       <TODO>)
+
+    4. Based upon Strategy, Command and chain of responsibility.
+
 * **Reliability** :
-    1. Each job is executed and processed in its own thread I.e For a single job a new thread is
-       created. The thread can either fail or succeed.
-    2. If a thread fails, corresponding status and reason is updated in MongoDB
+    1. Each job is executed and processed in its own thread, i.e. for each submitted job is executed
+       a separate thread from ScheduledThreadPoolExecutor. The thread can either fail or succeed.
+    2. If a thread fails, corresponding status and reason is updated in MongoDB.
 * **Internal Consistency** :
-    1. It’s maintained at each level - job posted, job submitted to Kafka, job consumed and
-       processed in scheduler, job being executed. Hence maintaining the required status.
+    1. It’s maintained at each level, when - Job is submitted, Job is submitted to Kafka broker, Job
+       is consumed and processed in Scheduler, Job is/being executed. Hence, maintaining the
+       required status. Refer [Job States](#job-states) for description of valid states.
 * **Scheduling and Priority**:
-    1. Scheduling is achieved by submitting the task at a given time which is not in past the
-       current UTC timestamp-Delta seconds.
-    2. The Ordering is guaranteed by using the same key of value as job type, when submitting data
-       to Kafka. Ensuring each data with same key goes to only one Partition and is read by only one
-       consumer group, thereby maintaining ordering.
+    1. Scheduling is achieved by submitting the task at a given time which is not in older than the
+       current UTC Timestamp, and a Delta seconds (**Δ<sub>ts</sub>**).
+    2. The Ordering is guaranteed by using the value of Job Type as Topic partition key, when the
+       job is submitted to Kafka broker. Ensuring each Job with same key goes to only specific
+       Partition and is read by only one consumer group, thereby maintaining ordering.
     3. Scheduling is implemented through ScheduledThreadPool executor.
     4. The priority is defined as: HIGH, MEDIUM and LOW
         1. LOW: This is the default. With this priority, the job will be executed based upon its
            scheduled time stamp.
-        2. HIGH: The high priority task will be executed in configured Delta seconds from the
-           current time and Scheduled timestamp is of Future.
-           **The design can be changed**. The Queue size of Runnables in ScheduledThreadPool is
+        2. HIGH: The high priority task will be executed in configured Delta seconds(defined
+           by `${schedule.execution.high.priority-ts}`) from the current time and Scheduled
+           timestamp is of Future.
+           **The design can be changed**. The Queue size of Runnable in ScheduledThreadPool is
            configured with `scheduler ${service.executor.core.pool.max}` in current design. By
            setting the appropriate value, the Lower and Medium priority tasks will always be
            executed at their scheduled timestamp.
         3. MEDIUM: This is handled as same as LOW priority. Though this can be changed. The purpose
-           is to describe how different logic can be handled.
+           is to describe how different logic can be handled. The scheduling can be defined similar
+           to High by using (defined by `${schedule.execution.medium.priority-ts}`), but the
+           implementation is not handled.
 
 ##### Algorithm
 
@@ -83,6 +95,59 @@ Job **J** with Scheduled time **T<sub>sh</sub>**, and a **Δ<sub>ts</sub>** in S
        ts</sub>.
 
 NOTE: **Δ<sub>ts</sub>** is defined in `producer-api ${task.schedule.execution.delta-ts}`
+
+To put a limit on the number of transactions, and a sustained load to MongoDB, a Semaphore is
+created with configured count and fairness.
+
+##### Job States
+
+1. QUEUED - When the Job is submitted for execution and is waiting to be executed in
+   ScheduledThreadPool based on it's scheduled timestamp.
+2. SCHEDULED - When the Job is submitted for execution and is outside the defined execution window
+   of ScheduledThreadPool based on it's scheduled timestamp as defined
+   through `${task.schedule.execution.window-ts}`.
+3. RUNNING - The Job is being executed by a thread from ScheduledThreadPool based on it's scheduled
+   timestamp.
+4. SUCCESS - The Submitted job is executed with Success.
+5. FAILED - The Submitted job is executed with Failure and reason is stored in MongoDB for later
+   retrieval.
+
+##### System Configuration and Tuning
+
+- Kafka Configuration
+    * Kafka Bootstrap Server: broker:9092
+    * Kafka Topic: job-task-system
+    * Kafka Topic Partition: 3
+    * kafka Topic replica: 3
+
+NOTE: The Topic Partitions, should be chosen wisely when deploying the system, since, the ordering
+will depend on this.
+
+- Scheduler Configurations
+    - [ScheduledThreadPool](scheduler/src/main/java/io/jobscheduler/scheduler/components/ExecutorServiceEngine.java)
+        * `executor.core.pool.min` # Number of minimum threads to keep in pool
+        * `executor.core.pool.max` # Number of maximum threads to keep in pool. If it's exhausts,
+          custom
+          RejectedExecutionHandler [GrowAndSubmitPolicy](scheduler/src/main/java/io/jobscheduler/scheduler/components/GrowAndSubmitPolicy.java)
+        * `executor.core.pool.keep-alive` # Self Explanatory
+        * `executor.core.pool.termination` # Self Explanatory
+    - [TaskServiceImpl](scheduler/src/main/java/io/jobscheduler/scheduler/service/TaskServiceImpl.java)
+        * `task.schedule.execution.window-ts` # Window of seconds for which Tasks are submitted to
+          Thread pool. Thus, ThreadPool executes the task in Window
+          of `schedule.execution.window-ts`
+        * `task.schedule.execution.delta-ts` # Delta as described in [Algorithm](#algorithm)
+        * `task.schedule.execution.high.priority-ts` # Delta as described in 'Scheduling and
+          Priority' of [Design Aspects](#design-aspects)
+        * `task.schedule.execution.medium.priority-ts` # Delta as described in 'Scheduling and
+          Priority' of [Design Aspects](#design-aspects)
+    - [DaemonTaskScheduler](scheduler/src/main/java/io/jobscheduler/scheduler/components/DaemonTaskScheduler.java)
+        * A Spring @Scheduled thread which schedules Jobs which are submitted outside the
+          window `task.schedule.execution.window-ts` as described above.
+        * `task.daemon.execution.interval` Defines FixedInterval of this Daemon thread.
+        * Fetch jobs from MongoDB with status as `Scheduled` based on filter range Instant.now()
+          .toEpochSeconds() +
+            * `task.daemon.execution.interval.query.start-interval` # Inclusive
+            * `task.daemon.execution.interval.query.elapsed-interval` # Exclusive
 
 ##### Sequence Diagram
 
