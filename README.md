@@ -1,4 +1,4 @@
-[![Compile and Build](https://github.com/saurabh-slacklife/job-scheduler/actions/workflows/maven-build.yml/badge.svg)](https://github.com/saurabh-slacklife/job-scheduler/actions/workflows/maven-build.yml)
+[![Maven and Docker Build](https://github.com/saurabh-slacklife/job-scheduler/actions/workflows/maven-and-docker-build.yml/badge.svg)](https://github.com/saurabh-slacklife/job-scheduler/actions/workflows/maven-and-docker-build.yml)
 
 ## Table of contents
 
@@ -8,6 +8,7 @@
     * [Design Aspects](#design-aspects)
         * [Algorithm](#algorithm)
         * [Job States](#job-states)
+        * [Job Actions](#job-actions)
         * [System Configuration and Tuning](#system-configuration-and-tuning)
         * [Sequence Diagram](#sequence-diagram)
         * [Flow chart](#flow-chart)
@@ -44,10 +45,6 @@
     1. Based on Action type in Post request in path variable
     2. New Actions can be defined in the system with their corresponding handling.
     3. The Request body is generic - the body of request is defined by Map<String, String>.
-
-[comment]: <> (Handle below, once code is updated       <TODO>)
-
-    4. Based upon Strategy, Command and chain of responsibility.
 
 * **Reliability** :
     1. Each job is executed and processed in its own thread, i.e. for each submitted job is executed
@@ -117,13 +114,29 @@ created with configured count and fairness.
 5. FAILED - The Submitted job is executed with Failure and reason is stored in MongoDB for later
    retrieval.
 
+##### Job Actions
+
+Based on Action type or Job Type, the appropriate Implementation is executed as
+defined [here](scheduler/src/main/java/io/jobscheduler/scheduler/action/ActionFactory.java)
+
+As of now there isn't any implementation and job either succeeds or fails based on the return type.
+
+Examples of [Job Action](scheduler/src/main/java/io/jobscheduler/scheduler/action/Action.java) 
+types:
+
+1. push_notification - Succeeds the Job.
+2. subscribe - Succeeds the Job.
+3. email - Fails the Job.
+4. save - fails the Job.
+5. index - Fails the Job.
+
 ##### System Configuration and Tuning
 
 - Kafka Configuration
     * Kafka Bootstrap Server: broker:9092
     * Kafka Topic: job-task-system
-    * Kafka Topic Partition: 3
-    * kafka Topic replica: 3
+    * Kafka Topic Partition: 1
+    * kafka Topic replica: 1
 
 NOTE: The Topic Partitions, should be chosen wisely when deploying the system, since, the ordering
 will depend on this.
@@ -181,9 +194,11 @@ will depend on this.
   <p align="center">
   <img src="design-images/ProducerApi.png">
   <br/>
+
 </p>
 
 - Scheduler
+
 <p align="center">
   <img src="design-images/scheduler.png">
   <br/>

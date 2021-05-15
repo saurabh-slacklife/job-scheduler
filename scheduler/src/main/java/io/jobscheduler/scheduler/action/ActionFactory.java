@@ -11,10 +11,11 @@ public class ActionFactory {
 
   static {
 //    TODO update these actions
-    actionMap.put(Action.index.name(), PushNotificationActionImpl::new);
-    actionMap.put(Action.save.name(), PushNotificationActionImpl::new);
+    actionMap.put(Action.index.name(), ElasticSearchRepository::new);
+    actionMap.put(Action.save.name(), RedisRepositoryImpl::new);
     actionMap.put(Action.push_notification.name(), PushNotificationActionImpl::new);
     actionMap.put(Action.email.name(), SendEmail::new);
+    actionMap.put(Action.subscribe.name(), EmailSubscribeImpl::new);
   }
 
   public static IAction getActor(String type) {

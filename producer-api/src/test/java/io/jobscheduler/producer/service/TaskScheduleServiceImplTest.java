@@ -27,6 +27,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class TaskScheduleServiceImplTest {
@@ -44,28 +46,25 @@ class TaskScheduleServiceImplTest {
 
   @Test
   void whenTaskProcessWithSuccess_validateUri() {
-    Task task = MapperUtil.jobRequestToTask(jobRequest, Action.email);
-
     TaskDocument taskDocument = mock(TaskDocument.class);
-    doReturn("docId").when(taskDocument).getId();
+    when(taskDocument.getId()).thenReturn("docId");
 
     MongoTemplate mongoTemplate = mock(MongoTemplate.class);
-    doReturn(taskDocument).when(mongoTemplate).save(taskDocument);
+    when(mongoTemplate.save(taskDocument)).thenReturn(taskDocument);
 
     MongoTaskRepositoryImpl mongoTaskRepository = mock(MongoTaskRepositoryImpl.class);
     when(mongoTaskRepository.save(taskDocument)).thenReturn(taskDocument);
-
-    KafkaConnector mockKafkaConnector = mock(KafkaConnector.class);
-    doNothing().when(mockKafkaConnector).publishTask(Action.email, task);
 
     String expectedUri = Base64.getEncoder()
         .encodeToString((Action.email + ":" + "docId").getBytes(StandardCharsets.UTF_8));
 
     TaskScheduleServiceImpl taskScheduleService = mock(TaskScheduleServiceImpl.class);
-    doReturn(expectedUri).when(taskScheduleService).processTask(jobRequest, Action.email);
+    when(taskScheduleService.processTask(jobRequest, Action.email)).thenReturn(expectedUri);
 
     String uri = taskScheduleService.processTask(jobRequest, Action.email);
     assertNotNull(uri);
+
+    verify(taskScheduleService, times(1)).processTask(jobRequest, Action.email);
 
     String expectedJobId = Action.email.name() + ":docId";
     String actualUri = new String(Base64.getDecoder().decode(uri), StandardCharsets.UTF_8);

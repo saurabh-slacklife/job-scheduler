@@ -14,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -43,6 +45,8 @@ class MongoTaskRepositoryImplTest {
         .getDocumentsByScheduledTime(instant.getEpochSecond(),
             instant.plusSeconds(20).getEpochSecond());
     assertEquals(1, result.size());
+    verify(mockMongoTaskRepository, times(1)).getDocumentsByScheduledTime(instant.getEpochSecond(),
+        instant.plusSeconds(20).getEpochSecond());
   }
 
   @Test
@@ -68,6 +72,8 @@ class MongoTaskRepositoryImplTest {
         .getDocumentsByScheduledTime(instant.getEpochSecond(),
             instant.plusSeconds(20).getEpochSecond());
     assertEquals(0, result.size());
+    verify(mockMongoTaskRepository, times(1)).getDocumentsByScheduledTime(instant.getEpochSecond(),
+        instant.plusSeconds(20).getEpochSecond());
   }
 
   @Test
@@ -84,6 +90,7 @@ class MongoTaskRepositoryImplTest {
     TaskDocument responseDocument = mockMongoTaskRepository.save(taskDocument);
 
     assertEquals(taskDocument, responseDocument);
+    verify(mockMongoTaskRepository, times(1)).save(taskDocument);
 
 
   }
@@ -101,5 +108,6 @@ class MongoTaskRepositoryImplTest {
     doReturn(taskDocument).when(mockMongoTaskRepository).save(taskDocument);
 
     mockMongoTaskRepository.update("ObjectID", TaskStatus.RUNNING, 12432542534L);
+    verify(mockMongoTaskRepository, times(1)).update("ObjectID", TaskStatus.RUNNING, 12432542534L);
   }
 }

@@ -33,9 +33,9 @@ public class MongoTaskRepositoryImpl implements ITaskRepository<TaskDocument> {
 
   @Override
   public void update(String objectId, TaskStatus status) {
-    final Criteria taskCriteria = Criteria
+    final Criteria docCriteria = Criteria
         .where("_id").is(new ObjectId(objectId));
-    final Query query = Query.query(taskCriteria);
+    final Query query = Query.query(docCriteria);
     final TaskDocument taskDoc = mongoTemplate.findOne(query, TaskDocument.class);
 
     taskDoc.setTaskStatus(status);
@@ -76,13 +76,13 @@ public class MongoTaskRepositoryImpl implements ITaskRepository<TaskDocument> {
    */
   @Override
   public List<TaskDocument> getDocumentsByScheduledTime(long startTime, long elapsedTime) {
-    final Criteria taskCriteria = Criteria
+    final Criteria docCriteria = Criteria
         .where("taskStatus").is(TaskStatus.SCHEDULED)
         .andOperator(
             Criteria.where("jobScheduleTimeSeconds").gte(startTime),
             Criteria.where("jobScheduleTimeSeconds").lt(elapsedTime)
         );
-    final Query query = Query.query(taskCriteria);
+    final Query query = Query.query(docCriteria);
     return mongoTemplate.find(query, TaskDocument.class);
   }
 }

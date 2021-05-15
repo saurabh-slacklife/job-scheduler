@@ -21,6 +21,8 @@ management:
 logging:
   level:
     root: INFO
+  file:
+    name: "application.log"
 server:
   port: ${SERVER_PORT:9000}
   error:

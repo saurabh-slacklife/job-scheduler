@@ -1,5 +1,5 @@
 ---
-version: '3'
+version: '2'
 
 services:
   zookeeper:
@@ -17,7 +17,7 @@ services:
     hostname: broker
     container_name: broker
     depends_on:
-      - "zookeeper"
+      - zookeeper
     ports:
       - "29092:29092"
     environment:
@@ -41,11 +41,27 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
+  kafka-topic-create:
+    image: confluentinc/cp-kafka:6.1.0
+    hostname: kafka-setup
+    container_name: kafka-setup
+    depends_on:
+      - zookeeper
+      - broker
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+                       cub kafka-ready -b broker:9092 1 20 && \
+                       kafka-topics --create --topic job-task-system --bootstrap-server broker:9092 --replication-factor 1 --partitions 1'"
+    environment:
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored
+
   producer-api:
     container_name: producer-api
     depends_on:
-      - "broker"
-      - "mongo"
+      - zookeeper
+      - broker
+      - mongo
+      - kafka-topic-create
     build:
       context: producer-api
       dockerfile: container_manifests/Dockerfile
@@ -57,8 +73,10 @@ services:
   scheduler:
     container_name: scheduler
     depends_on:
-      - "broker"
-      - "mongo"
+      - zookeeper
+      - broker
+      - mongo
+      - kafka-topic-create
     build:
       context: scheduler
       dockerfile: container_manifests/Dockerfile
@@ -68,7 +86,7 @@ services:
   scheduler-dashboard-api:
     container_name: scheduler-dashboard-api
     depends_on:
-      - "mongo"
+      - mongo
     build:
       context: scheduler-dashboard-api
       dockerfile: container_manifests/Dockerfile

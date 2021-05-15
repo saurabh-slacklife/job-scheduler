@@ -1,0 +1,12 @@
+curl -i --location --request POST 'http://localhost:9000/job/push_notification/' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "requestId": "1234",
+    "jobScheduleTimeUtc": "2021-05-15T18:05:10.00Z",
+    "priority": "LOW",
+    "taskRequest": {
+        "name": "PushNotification",
+        "clientId": "fwjrbqeiurwb14234",
+        "message":"Hello, World!"
+    }
+}'

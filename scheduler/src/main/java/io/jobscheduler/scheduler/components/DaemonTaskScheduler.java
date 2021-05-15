@@ -31,7 +31,7 @@ public class DaemonTaskScheduler {
   private long elapsedInterval;
 
   //  fixedRate of elapsedInterval seconds from last invocation to start of next
-  @Scheduled(fixedRateString="${task.daemon.execution.interval}")
+  @Scheduled(fixedRateString="${task.daemon.execution.interval:10}")
   public void scheduleTask() {
 
     Instant now = Instant.now();

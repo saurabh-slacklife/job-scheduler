@@ -21,12 +21,13 @@ public class GrowAndSubmitPolicy implements RejectedExecutionHandler {
         executor.setMaximumPoolSize(1 + executor.getMaximumPoolSize());
         log.warn("Thread Pool executor max size increased with ActiveCount={} MaxPoolSize={}",
             executor.getActiveCount(), executor.getMaximumPoolSize());
+        executor.submit(r);
+      }
+      {
+        log.warn("Thread Pool executor is Shutdown, can't submit runnable task");
       }
     } finally {
       lock.unlock();
     }
-    executor.submit(r);
-
-
   }
 }

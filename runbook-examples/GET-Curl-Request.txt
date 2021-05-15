@@ -1,0 +1,1 @@
+curl --location --request GET 'http://localhost:9001/api/job/status/cHVzaF9ub3RpZmljYXRpb246NjA5ZmYyMWQ1ZTBiMjQ3MzZiOWM1MDE0'
