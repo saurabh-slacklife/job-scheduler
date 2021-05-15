@@ -1,47 +1,105 @@
 package io.jobscheduler.producer.repository;
 
+import io.jobscheduler.models.TaskStatus;
 import io.jobscheduler.producer.models.document.TaskDocument;
-import io.jobscheduler.producer.service.TaskScheduleServiceImpl;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.data.mongodb.core.query.Query;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(SpringExtension.class)
-//@ContextConfiguration(classes = {MongoTemplate.class})
-@ActiveProfiles({"default", "dev", "qa", "prod"})
+
 class MongoTaskRepositoryImplTest {
 
-  @Mock
-  MongoTemplate mockMongoTemplate;
-  @MockBean
-  MongoTaskRepositoryImpl mockMongoTaskRepository;
-
-
   @Test
-  public void whenTimesBounded_theGetFromMongo() {
+  public void whenTimeBounded_thenGetFromMongo() {
+
+    MongoTemplate mockMongoTemplate = mock(MongoTemplate.class);
     when(mockMongoTemplate.find(any(), any())).thenReturn(new ArrayList<>());
+
+    TaskDocument mockTaskDocument = mock(TaskDocument.class);
+    doReturn("docId").when(mockTaskDocument).getId();
+
+    MongoTaskRepositoryImpl mockMongoTaskRepository = mock(MongoTaskRepositoryImpl.class);
+    when(mockMongoTaskRepository.save(mockTaskDocument)).thenReturn(mockTaskDocument);
+
+    List<TaskDocument> responseList = new ArrayList<>();
+    responseList.add(mockTaskDocument);
+
     final Instant instant = Clock.systemUTC().instant().plusSeconds(5);
+    doReturn(responseList).when(mockMongoTaskRepository)
+        .getDocumentsByScheduledTime(instant.getEpochSecond(),
+            instant.plusSeconds(20).getEpochSecond());
+
     List<TaskDocument> result = mockMongoTaskRepository
         .getDocumentsByScheduledTime(instant.getEpochSecond(),
             instant.plusSeconds(20).getEpochSecond());
-    assertNotNull(result);
+    assertEquals(1, result.size());
+  }
 
+  @Test
+  public void whenTimeSecondsNotMatch_thenGetFromMongo() {
+
+    MongoTemplate mockMongoTemplate = mock(MongoTemplate.class);
+    when(mockMongoTemplate.find(any(), any())).thenReturn(new ArrayList<>());
+
+    TaskDocument mockTaskDocument = mock(TaskDocument.class);
+    doReturn("docId").when(mockTaskDocument).getId();
+
+    MongoTaskRepositoryImpl mockMongoTaskRepository = mock(MongoTaskRepositoryImpl.class);
+    when(mockMongoTaskRepository.save(mockTaskDocument)).thenReturn(mockTaskDocument);
+
+    List<TaskDocument> responseList = new ArrayList<>();
+
+    final Instant instant = Clock.systemUTC().instant().plusSeconds(5);
+    doReturn(responseList).when(mockMongoTaskRepository)
+        .getDocumentsByScheduledTime(instant.getEpochSecond(),
+            instant.plusSeconds(20).getEpochSecond());
+
+    List<TaskDocument> result = mockMongoTaskRepository
+        .getDocumentsByScheduledTime(instant.getEpochSecond(),
+            instant.plusSeconds(20).getEpochSecond());
+    assertEquals(0, result.size());
+  }
+
+  @Test
+  public void whenTaskDocumentPersistCall_thenSaveInMongo() {
+
+    TaskDocument taskDocument = new TaskDocument();
+
+    MongoTemplate mockMongoTemplate = mock(MongoTemplate.class);
+    doReturn(taskDocument).when(mockMongoTemplate).save(taskDocument);
+
+    MongoTaskRepositoryImpl mockMongoTaskRepository = mock(MongoTaskRepositoryImpl.class);
+    doReturn(taskDocument).when(mockMongoTaskRepository).save(taskDocument);
+
+    TaskDocument responseDocument = mockMongoTaskRepository.save(taskDocument);
+
+    assertEquals(taskDocument, responseDocument);
+
+
+  }
+
+  @Test
+  public void whenValidIdStatusEpoch_thenFindAndUpdateInMongo() {
+
+    TaskDocument taskDocument = new TaskDocument();
+
+    Query mockQuery = mock(Query.class);
+    MongoTemplate mockMongoTemplate = mock(MongoTemplate.class);
+    doReturn(taskDocument).when(mockMongoTemplate).findOne(mockQuery, TaskDocument.class);
+
+    MongoTaskRepositoryImpl mockMongoTaskRepository = mock(MongoTaskRepositoryImpl.class);
+    doReturn(taskDocument).when(mockMongoTaskRepository).save(taskDocument);
+
+    mockMongoTaskRepository.update("ObjectID", TaskStatus.RUNNING, 12432542534L);
   }
 }

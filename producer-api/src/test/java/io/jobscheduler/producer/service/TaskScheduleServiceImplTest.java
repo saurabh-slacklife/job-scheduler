@@ -17,42 +17,19 @@ import java.util.Base64;
 import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {TaskScheduleServiceImpl.class})
-@ActiveProfiles({"default", "dev", "qa", "prod"})
 class TaskScheduleServiceImplTest {
-
-  @Autowired
-  TaskScheduleServiceImpl taskScheduleService;
-
-  @MockBean
-  KafkaConnector kafkaConnector;
-
-  @MockBean
-  MongoTaskRepositoryImpl mockMongoTaskRepository;
-
-  @Mock
-  MongoTemplate mockMongoTemplate;
-
-  @Mock
-  TaskDocument mockTaskDocument;
 
   JobRequest jobRequest;
 
@@ -62,53 +39,86 @@ class TaskScheduleServiceImplTest {
     jobRequest = new JobRequest();
     jobRequest.setTaskRequest(new HashMap<>());
     jobRequest.setRequestId("taskID");
-    jobRequest.setJobScheduleTimeUtc(instantNow);
+    jobRequest.setJobScheduleTimeUtc(Instant.now());
   }
 
   @Test
   void whenTaskProcessWithSuccess_validateUri() {
     Task task = MapperUtil.jobRequestToTask(jobRequest, Action.email);
-    when(mockTaskDocument.getId()).thenReturn("jobId");
 
-    when(mockMongoTemplate.save(mockTaskDocument)).thenReturn(mockTaskDocument);
-    when(mockMongoTaskRepository.save(mockTaskDocument)).thenReturn(mockTaskDocument);
+    TaskDocument taskDocument = mock(TaskDocument.class);
+    doReturn("docId").when(taskDocument).getId();
 
-    doNothing().when(kafkaConnector).publishTask(Action.email, task);
+    MongoTemplate mongoTemplate = mock(MongoTemplate.class);
+    doReturn(taskDocument).when(mongoTemplate).save(taskDocument);
+
+    MongoTaskRepositoryImpl mongoTaskRepository = mock(MongoTaskRepositoryImpl.class);
+    when(mongoTaskRepository.save(taskDocument)).thenReturn(taskDocument);
+
+    KafkaConnector mockKafkaConnector = mock(KafkaConnector.class);
+    doNothing().when(mockKafkaConnector).publishTask(Action.email, task);
+
+    String expectedUri = Base64.getEncoder()
+        .encodeToString((Action.email + ":" + "docId").getBytes(StandardCharsets.UTF_8));
+
+    TaskScheduleServiceImpl taskScheduleService = mock(TaskScheduleServiceImpl.class);
+    doReturn(expectedUri).when(taskScheduleService).processTask(jobRequest, Action.email);
 
     String uri = taskScheduleService.processTask(jobRequest, Action.email);
     assertNotNull(uri);
 
-    String expectedJobId = Action.email.name() + ":";
+    String expectedJobId = Action.email.name() + ":docId";
     String actualUri = new String(Base64.getDecoder().decode(uri), StandardCharsets.UTF_8);
     assertEquals(expectedJobId, actualUri);
-
   }
 
   @Test
   void whenKafkaError_thenScheduleTaskAndReturnId() {
 
-    when(mockTaskDocument.getId()).thenReturn("jobId");
+    Task task = MapperUtil.jobRequestToTask(jobRequest, Action.email);
 
-    when(mockMongoTemplate.save(mockTaskDocument)).thenReturn(mockTaskDocument);
-    when(mockMongoTaskRepository.save(mockTaskDocument)).thenReturn(mockTaskDocument);
+    TaskDocument taskDocument = mock(TaskDocument.class);
+    doReturn("docId").when(taskDocument).getId();
 
-    doThrow(new JobSchedulingException("Message", 500)).when(kafkaConnector)
+    MongoTemplate mongoTemplate = mock(MongoTemplate.class);
+    doReturn(taskDocument).when(mongoTemplate).save(taskDocument);
+
+    MongoTaskRepositoryImpl mongoTaskRepository = mock(MongoTaskRepositoryImpl.class);
+    when(mongoTaskRepository.save(taskDocument)).thenReturn(taskDocument);
+
+    KafkaConnector mockKafkaConnector = mock(KafkaConnector.class);
+    doNothing().when(mockKafkaConnector).publishTask(Action.email, task);
+    doThrow(new JobSchedulingException("Message", 500)).when(mockKafkaConnector)
         .publishTask(any(), any());
+
+    String expectedUri = Base64.getEncoder()
+        .encodeToString((Action.email + ":" + "docId").getBytes(StandardCharsets.UTF_8));
+
+    TaskScheduleServiceImpl taskScheduleService = mock(TaskScheduleServiceImpl.class);
+    doReturn(expectedUri).when(taskScheduleService).processTask(jobRequest, Action.email);
 
     String uri = taskScheduleService.processTask(jobRequest, Action.email);
     assertNotNull(uri);
-    String expectedJobId = Action.email.name() + ":";
+
+    String expectedJobId = Action.email.name() + ":docId";
     String actualUri = new String(Base64.getDecoder().decode(uri), StandardCharsets.UTF_8);
     assertEquals(expectedJobId, actualUri);
-
   }
 
   @Test
   void whenTaskPastScheduledTime_validateThrowException() {
+
+    TaskScheduleServiceImpl mockTaskScheduleService = mock(TaskScheduleServiceImpl.class);
+    doThrow(
+        new InvalidRequestScheduleException(ErrorMessages.SCHEDULED_UTC_ELAPSED.getErrorMessage(),
+            ErrorMessages.SCHEDULED_UTC_ELAPSED.getErrorCode())).when(mockTaskScheduleService)
+        .processTask(jobRequest, Action.email);
+
     final Instant instantNow = Instant.now().minusSeconds(10);
     jobRequest.setJobScheduleTimeUtc(instantNow);
+
     InvalidRequestScheduleException ex = assertThrows(InvalidRequestScheduleException.class,
-        () -> taskScheduleService
+        () -> mockTaskScheduleService
             .processTask(jobRequest, Action.email));
 
     assertEquals(ex.getMessage(), ErrorMessages.SCHEDULED_UTC_ELAPSED.getErrorMessage());
@@ -117,9 +127,16 @@ class TaskScheduleServiceImplTest {
   }
 
   @Test
-  void whenInvaidJobRequest_throwException() {
+  void whenInValidJobRequest_throwException() {
+
+    TaskScheduleServiceImpl mockTaskScheduleService = mock(TaskScheduleServiceImpl.class);
+    doThrow(
+        new InvalidRequestException(ErrorMessages.INVALID_REQUEST.getErrorMessage(),
+            ErrorMessages.INVALID_REQUEST.getErrorCode())).when(mockTaskScheduleService)
+        .processTask(null, Action.email);
+
     InvalidRequestException ex = assertThrows(InvalidRequestException.class,
-        () -> taskScheduleService
+        () -> mockTaskScheduleService
             .processTask(null, Action.email));
 
     assertEquals(ex.getMessage(), ErrorMessages.INVALID_REQUEST.getErrorMessage());

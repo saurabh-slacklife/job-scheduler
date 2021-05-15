@@ -3,7 +3,6 @@ package io.jobscheduler.producer.common;
 import io.jobscheduler.models.Task;
 import io.jobscheduler.producer.models.Action;
 import io.jobscheduler.producer.models.resources.JobRequest;
-import java.time.ZoneOffset;
 
 public class MapperUtil {
 

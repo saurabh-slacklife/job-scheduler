@@ -9,10 +9,12 @@ import io.jobscheduler.dashboard.repository.MongoTaskRepositoryImpl;
 import io.jobscheduler.dashboard.repository.MongoUtil;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class JobDashboardService {
 
   MongoTaskRepositoryImpl mongoTaskRepository;
@@ -26,15 +28,18 @@ public class JobDashboardService {
       final TaskDocument jobScheduledDocument = this.mongoTaskRepository
           .findById(parseBase64JobId(jobId));
       if (null != jobScheduledDocument) {
+        log.info("TaskDocument found for Encoded JobID={}", jobId);
         final JobResponse jobResponse = MongoUtil
             .documentToDashboardResponseMapper(jobScheduledDocument);
         return jobResponse;
       } else {
+        log.error("Encoded JobID={} not found in datastore", jobId);
         throw new ResourceNotFoundError(ErrorMessages.RESOURCE_NOT_FOUND.getErrorMessage(),
             ErrorMessages.RESOURCE_NOT_FOUND
                 .getErrorCode());
       }
     } else {
+      log.error("Request JobID is empty");
       throw new InvalidRequestError(ErrorMessages.RESOURCE_NOT_FOUND.getErrorMessage(),
           ErrorMessages.RESOURCE_NOT_FOUND
               .getErrorCode());
