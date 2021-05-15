@@ -21,8 +21,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class KafkaConnector {
 
-  Producer<String, Task> producer;
-  String topicName;
+  private Producer<String, Task> producer;
+  private String topicName;
 
   public KafkaConnector(@Qualifier("kafkaConfiguration") KafkaConfiguration kafkaConfiguration) {
     this.producer = new KafkaProducer<>(kafkaConfiguration.toMap());

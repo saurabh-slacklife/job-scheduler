@@ -11,7 +11,7 @@ public class MapperUtil {
     final Task task = new Task();
     task.setRequestId(jobRequest.getRequestId());
     task.setTaskRequest(jobRequest.getTaskRequest());
-    task.setJobScheduleTimeUtc(jobRequest.getJobScheduleTimeUtc().toInstant(ZoneOffset.UTC));
+    task.setJobScheduleTimeUtc(jobRequest.getJobScheduleTimeUtc());
     task.setPriority(jobRequest.getPriority());
     task.setJobType(jobType.name());
 

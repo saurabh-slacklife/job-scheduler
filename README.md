@@ -14,6 +14,11 @@
         * [UML Diagram](#uml-diagram)
         * [MongoDB Data Model](#mongodb-data-model)
         * [High Level Architecture Diagram](#high-level-architecture-diagram)
+    * [Design Considerations](#design-considerations)
+        * [Why Java?](#why-java?)
+        * [Why Spring core and Spring Boot?](#why-spring-core-and-spring-boot?)
+        * [Why Kafka Broker?](#why-kafka-broker?)
+        * [Why MongoDB?](#why-mongoDB?)
     * [Project Structure](#project-structure)
     * [Tech Stack](#tech-stack)
     * [Improvements or Enhancements](#improvements-or-enhancements)
@@ -165,15 +170,30 @@ will depend on this.
 
 ##### UML Diagram
 
-[comment]: <Update UML here> (TODO)
+- Schedule Models
+
+<p align="center">
+  <img src="design-images/Schedule-Models.png">
+  <br/>
+</p>
+
+- Producer API
+  <p align="center">
+  <img src="design-images/ProducerApi.png">
+  <br/>
+</p>
+
+- Scheduler
+<p align="center">
+  <img src="design-images/scheduler.png">
+  <br/>
+</p>
 
 ##### MongoDB Data Model
 
 1. Collection: `TaskDocument`
 2. Indexes:
-
-* ObjectId
-* Composite Index
+   **NOTE**: Keeping Indexes and Document structure open for discussion.
 
 3. Object:
 
@@ -207,6 +227,26 @@ will depend on this.
   <img src="design-images/Architecture.jpg">
   <br/>
 </p>
+
+#### Design Considerations
+
+**NOTE**: Keeping all the below questions open, open for discussion.
+
+##### Why Java?
+
+    * Why not Python?
+
+##### Why Spring core and Spring Boot?
+
+    * Why not Qaurkus or Dropwizard
+
+##### Why Kafka Broker?
+
+    * Why not any other logging queue?
+
+##### Why MongoDB?
+
+    * Why not Elasticsearch, HBase, Cassandra or RDBMS?
 
 #### Project Structure
 

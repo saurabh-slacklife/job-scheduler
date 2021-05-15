@@ -15,10 +15,9 @@ import io.jobscheduler.producer.repository.MongoTaskRepositoryImpl;
 import io.jobscheduler.producer.repository.MongoUtil;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
-import java.time.ZoneOffset;
 import java.util.Base64;
-import org.apache.kafka.common.KafkaException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +30,9 @@ public class TaskScheduleServiceImpl implements
 
   @Autowired
   MongoTaskRepositoryImpl mongoTaskRepository;
+
+  @Value("${task.schedule.execution.delta-ts}")
+  long deltaTs;
 
   @Override
   public String processTask(@NonNull JobRequest jobRequest, Action jobType) {
@@ -65,10 +67,9 @@ public class TaskScheduleServiceImpl implements
           ErrorMessages.INVALID_REQUEST.getErrorCode());
     }
 
-// TODO  Handle Delta second logic from ${task.schedule.execution.delta-ts}
-
-    if (null != jobRequest.getJobScheduleTimeUtc() && Clock.systemUTC().instant()
-        .isAfter(jobRequest.getJobScheduleTimeUtc().toInstant(ZoneOffset.UTC))) {
+    if (null != jobRequest.getJobScheduleTimeUtc()
+        && Clock.systemUTC().instant().getEpochSecond() - deltaTs >
+        jobRequest.getJobScheduleTimeUtc().getEpochSecond()) {
       throw new InvalidRequestScheduleException(
           ErrorMessages.SCHEDULED_UTC_ELAPSED.getErrorMessage(),
           ErrorMessages.SCHEDULED_UTC_ELAPSED.getErrorCode());

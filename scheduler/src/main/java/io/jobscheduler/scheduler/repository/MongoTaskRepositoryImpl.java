@@ -31,6 +31,7 @@ public class MongoTaskRepositoryImpl implements ITaskRepository<TaskDocument> {
     return data;
   }
 
+  @Override
   public void update(String objectId, TaskStatus status) {
     final Criteria taskCriteria = Criteria
         .where("_id").is(new ObjectId(objectId));
@@ -73,6 +74,7 @@ public class MongoTaskRepositoryImpl implements ITaskRepository<TaskDocument> {
    * @param elapsedTime exclusive
    * @return List<TaskDocument>
    */
+  @Override
   public List<TaskDocument> getDocumentsByScheduledTime(long startTime, long elapsedTime) {
     final Criteria taskCriteria = Criteria
         .where("taskStatus").is(TaskStatus.SCHEDULED)

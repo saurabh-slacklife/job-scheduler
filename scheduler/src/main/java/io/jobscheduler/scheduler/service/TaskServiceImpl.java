@@ -1,6 +1,5 @@
 package io.jobscheduler.scheduler.service;
 
-import io.jobscheduler.models.Priority;
 import io.jobscheduler.models.Task;
 import io.jobscheduler.models.TaskStatus;
 import io.jobscheduler.scheduler.repository.MongoTaskRepositoryImpl;
