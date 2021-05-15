@@ -61,9 +61,18 @@ docker-compose exec broker kafka-topics --create --topic job-task-system --boots
 
 ### 4. Produce jobs to Scheduling system via Producer API
 
-`curl -X POST 'http://localhost:9000/job/ingest/' \
---header 'Content-Type: application/json' \
---data-raw '{"taskId": "1","taskRequest" : {"name":"1","hello":"hello"}}'`
+```shell
+  curl -X POST 'http://localhost:9000/job/push_notification/' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+  "requestId": "1234",
+  "jobScheduleTimeUtc": "2021-05-14T15:01:55.00Z",
+  "priority": "LOW",
+  "taskRequest": {
+  "name": "1",
+  "hello": "saurabh123455"}
+  }'
+  ```
 
 ### 5. Stop all services
 

@@ -6,14 +6,15 @@
 * [Design](#design)
     * [Assumptions](#assumptions)
     * [Design Aspects](#design-aspects)
-    * [Algorithm](#algorithm)
+        * [Algorithm](#algorithm)
         * [Sequence Diagram](#sequence-diagram)
         * [Flow chart](#flow-chart)
         * [UML Diagram](#uml-diagram)
-        * [High Level Architecture](#high-level-architecture)
+        * [MongoDB Data Model](#mongodb-data-model)
+        * [High Level Architecture Diagram](#high-level-architecture-diagram)
     * [Project Structure](#project-structure)
     * [Tech Stack](#tech-stack)
-    * [Improvements](#improvements)
+    * [Improvements or Enhancements](#improvements-or-enhancements)
     * [Not covered](#not-covered)
 * [Runbook](#runbook)
 
@@ -24,7 +25,7 @@
 #### Assumptions
 
 1. Tasks are idempotent, every task is independent of other.
-2. The scheduled time is always in Future.
+2. The scheduled time is always of Future.
 3. All services run in UTC timezone and tasks are required to be submitted in UTZ only. Though there
    isn’t any validation to check if the supplied time zone is not UTC.
 
@@ -36,7 +37,7 @@
     1. Based on Action type in Post request
     2. Based upon Strategy, Command and chain of responsibility.
 * **Reliability** :
-    1. Each job is executed and processed in it’s own thread I.e For a single job a new thread is
+    1. Each job is executed and processed in its own thread I.e For a single job a new thread is
        created. The thread can either fail or succeed.
     2. If a thread fails, corresponding status and reason is updated in MongoDB
 * **Internal Consistency** :
@@ -46,53 +47,173 @@
     1. Scheduling is achieved by submitting the task at a given time which is not in past the
        current UTC timestamp-Delta seconds.
     2. The Ordering is guaranteed by using the same key of value as job type, when submitting data
-       to Kafka. Ensuring the Each data with same key goes to only one Partition and is read by only
-       one consumer group, thereby maintaining ordering.
+       to Kafka. Ensuring each data with same key goes to only one Partition and is read by only one
+       consumer group, thereby maintaining ordering.
     3. Scheduling is implemented through ScheduledThreadPool executor.
     4. The priority is defined as: HIGH, MEDIUM and LOW
-        1. LOW: This is the default. I.e with this priority, the job will be executed based upon
-           it’s own time.
-        2. HIGH: The high priority task will be executed in configured delta seconds from the
-           current time, irrespective when it was scheduled. The design can be changed. Since the
-           Queue size of Runnables is Max and every other task is executing at t’s own time, their
-           lower priority tasks will always be executed.
-        3. MEDIUM: Can be handled in. Similar way.
+        1. LOW: This is the default. With this priority, the job will be executed based upon its
+           scheduled time stamp.
+        2. HIGH: The high priority task will be executed in configured Delta seconds from the
+           current time and Scheduled timestamp is of Future.
+           **The design can be changed**. The Queue size of Runnables in ScheduledThreadPool is
+           configured with `scheduler ${service.executor.core.pool.max}` in current design. By
+           setting the appropriate value, the Lower and Medium priority tasks will always be
+           executed at their scheduled timestamp.
+        3. MEDIUM: This is handled as same as LOW priority. Though this can be changed. The purpose
+           is to describe how different logic can be handled.
 
-#### Algorithm
+##### Algorithm
 
-Job J with Scheduled time T-UTC in future with default priority as LOW.
+Job **J** with Scheduled time **T<sub>sh</sub>**, and a **Δ<sub>ts</sub>** in Seconds:
 
-1. If scheduled time is in past than the current UTC timestamp minus configured delta, don’t accept
-   the job and return Bad request.
-    1. (ScheduledTimestamp-CurrentTimestamp)>0 -> Accept and Schedule the job
-    2. (ScheduledTimestamp-CurrentTimestamp)<0 &&  (ScheduledTimestamp-CurrentTimestamp)+DeltaTS>0->
-       Accept and Schedule the job
-    3. (ScheduledTimestamp-CurrentTimestamp)<0 &&  (ScheduledTimestamp-CurrentTimestamp)+DeltaTS<0->
-       Don’t accept and return Bad Request
+* With default **Priority=LOW** OR **Priority=MEDIUM**:
+    1. (T<sub>sh</sub> - CurrentTimestamp) < 0 &&  (T<sub>sh</sub> - CurrentTimestamp) \+ Δ<sub>
+       ts</sub> < 0 **_then_** Don’t accept and return Bad Request.
+    2. _**else-if**_  (T<sub>sh</sub> - CurrentTimestamp) > 0 **_then_** Accept and Schedule the
+       job.
+    3. _**else-if**_ (T<sub>sh</sub> - CurrentTimestamp) < 0 &&  (T<sub>sh</sub> - CurrentTimestamp)
+       \+ Δ<sub>ts</sub> > 0 **_then_** Accept and Schedule the job.
+* With **Priority=HIGH**:
+    1. (T<sub>sh</sub> - CurrentTimestamp) < 0 &&  (T<sub>sh</sub> - CurrentTimestamp) \+ Δ<sub>
+       ts</sub> < 0 **_then_** Don’t accept and return Bad Request.
+    2. _**else-if**_  (T<sub>sh</sub> - CurrentTimestamp) > 0 **_then_** Accept and Schedule the job
+       at Instant.now() + Δ<sub>ts</sub>.
+    3. _**else-if**_ (T<sub>sh</sub> - CurrentTimestamp) < 0 &&  (T<sub>sh</sub> - CurrentTimestamp)
+       \+ Δ<sub>ts</sub> > 0 **_then_** Accept and Schedule the job at Instant.now() + Δ<sub>
+       ts</sub>.
+
+NOTE: **Δ<sub>ts</sub>** is defined in `producer-api ${task.schedule.execution.delta-ts}`
 
 ##### Sequence Diagram
 
+<p align="center">
+  <img src="design-images/Job-Schedule-Sequence-Diagram.jpg">
+  <br/>
+</p>
+
 ##### Flow chart
+
+<p align="center">
+  <img src="design-images/Job Scheduler-Flowchart.jpg">
+  <br/>
+</p>
 
 ##### UML Diagram
 
-##### High Level Architecture
+[comment]: <Update UML here> (TODO)
+
+##### MongoDB Data Model
+
+1. Collection: `TaskDocument`
+2. Indexes:
+
+* ObjectId
+* Composite Index
+
+3. Object:
+
+    ```java
+    @Id
+    String id;
+    String requestId;
+    String jobType;
+    Map<String, String> taskRequest;
+    long jobScheduleTimeSeconds;
+    Priority priority;
+    TaskStatus taskStatus;
+    String reason;
+    ```
+
+    ```java
+    public enum Priority {
+      HIGH, MEDIUM, LOW;
+    }
+    ```
+
+    ```java
+    public enum TaskStatus {
+      SCHEDULED, QUEUED, RUNNING, SUCCESS, FAILED;
+    }
+    ```
+
+##### High Level Architecture Diagram
+
+<p align="center">
+  <img src="design-images/Architecture.jpg">
+  <br/>
+</p>
 
 #### Project Structure
 
+The services are independent of each other but are kept under on directory for submission and hence
+are not dependent maven modules.
+
+- **Producer API (producer-api)**:
+    - REST service which accepts/rejects and submit Job to Scheduler service through Kafka message
+      broker.
+    - Endpoint: `POST /job/{jobType}`
+    - Request Example:
+  ```shell
+  curl -X POST 'http://localhost:9000/job/push_notification/' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+  "requestId": "1234",
+  "jobScheduleTimeUtc": "2021-05-14T15:01:55.00Z",
+  "priority": "LOW",
+  "taskRequest": {
+  "name": "1",
+  "hello": "saurabh123455"}
+  }'
+  ```
+- **Scheduler (scheduler)**:
+    - Service which consumes message log from Kafaka and schedules Jobs in ScheduledThreadPool
+      executor.
+- **Scheduler Dashboard API (job-scheduler-dashboard-api)**:
+    - REST service which exposes endpoints to get the status and details of Job.
+    - Endpoint: `GET /api/job/status/{jobId}`
+- **Scheduler models (scheduler-models)**:
+    - Contains the common data models.
+
 #### Tech Stack
 
-#### Improvements
+* Application Code - Java 11
+* IoC Container - Spring
+* Data Persistence - MongoDB
+* Message log - Kafka
+* Message log consumer - KStreams
 
-1. In case of JVM failure, the jobs submitted in thread pool will loose, due to ephemeral nature. To
-   handle this, Retry mechanism can be created which will pool Non-Failed or Non-Success tasks and
-   execute again. This can be achieved through the, @Scheduled thread running as daemon.
-    1. In this case, if retry is implemented - the system needs to ensure that no two or more JVM
-       are handling same tasks. This can also be achieved through running a single serverless job
-       which pulls jobs based on status and timeframe.
+#### Improvements or Enhancements
+
+1. The jobs are stored for processing in JVM custom ScheduledThreadPool. Now In case of JVM failure,
+   and its ephemeral nature, the unprocessed jobs in thread pool will be lost.
+
+   To handle this, Retry mechanism can be created which will pool **Non-Failed** or **Non-Success**
+   jobs and execute again. When job is scheduled in ScheduledThreadPool, it is marked as **Queued**
+   in MongoDB.
+
+   Also, if retry is implemented - the system design and implementation should ensure that no two or
+   more JVM are handling same tasks.
+
+   Possible options:
+    * This can be achieved through, Spring's @Scheduled thread running at fixedDelay or at
+      fixedRate.
+    * This can also be achieved through running a single serverless job which pulls jobs based on
+      status and timeframe.
+2. The definition of Priority and Scheduling (as combination) is quite vast and point of discussion.
+3. The Dashboard API can be enhanced to have endpoints and functionality which can:
+    * Search by window: Start time and Elapsed time
+    * Find jobs by Status and Job Type
+    * Support pagination
+4. The Producer API and Dashboard API can be deployed behind a Proxy server - Envoy, HAPRoxy as an
+   examples.
+5. Support of Protobuf for both REST and Kafka DTOs, apart from Json.
 
 #### Not covered
 
+1. Container orchestration through K8s.
+2. Proxy server for Producer API and Dashboard API.
+
 ### Runbook
 
+[Runbook](RUNBOOK.md)
 

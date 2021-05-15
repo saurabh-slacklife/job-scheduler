@@ -43,3 +43,7 @@ kafka:
   acks: ${KAFKA_ACKS:all}
   key-serializer: org.apache.kafka.common.serialization.StringSerializer
   value-serializer: io.jobscheduler.producer.connector.TaskSerializer
+task:
+  schedule:
+    execution:
+      delta-ts: 5

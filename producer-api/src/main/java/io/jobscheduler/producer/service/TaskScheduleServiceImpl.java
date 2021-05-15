@@ -65,6 +65,8 @@ public class TaskScheduleServiceImpl implements
           ErrorMessages.INVALID_REQUEST.getErrorCode());
     }
 
+// TODO  Handle Delta second logic from ${task.schedule.execution.delta-ts}
+
     if (null != jobRequest.getJobScheduleTimeUtc() && Clock.systemUTC().instant()
         .isAfter(jobRequest.getJobScheduleTimeUtc().toInstant(ZoneOffset.UTC))) {
       throw new InvalidRequestScheduleException(
