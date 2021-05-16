@@ -1,5 +1,5 @@
 ---
-version: '2'
+version: '3'
 
 services:
   zookeeper:
@@ -41,7 +41,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
-  kafka-topic-create:
+  kafka-setup:
     image: confluentinc/cp-kafka:6.1.0
     hostname: kafka-setup
     container_name: kafka-setup
@@ -61,7 +61,7 @@ services:
       - zookeeper
       - broker
       - mongo
-      - kafka-topic-create
+      - kafka-setup
     build:
       context: producer-api
       dockerfile: container_manifests/Dockerfile
@@ -76,7 +76,8 @@ services:
       - zookeeper
       - broker
       - mongo
-      - kafka-topic-create
+      - kafka-setup
+    restart: on-failure
     build:
       context: scheduler
       dockerfile: container_manifests/Dockerfile

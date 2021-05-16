@@ -25,7 +25,6 @@ public class TaskStreamProcessor {
   @Autowired
   public void process(final StreamsBuilder streamsBuilder) {
 
-//    TODO Add logic for Time based scheduling and priority based
     Serde<String> stringSerde = Serdes.String();
     Serde<Task> taskSerde = TaskSerdes.Task();
 

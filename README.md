@@ -6,21 +6,22 @@
 * [Design](#design)
     * [Assumptions](#assumptions)
     * [Design Aspects](#design-aspects)
+        * [Components](#components)
+        * [High Level Architecture Diagram](#high-level-architecture-diagram)
+        * [Sequence Diagram](#sequence-diagram)
+        * [Flow chart](#flow-chart)
         * [Algorithm](#algorithm)
         * [Job States](#job-states)
         * [Job Actions](#job-actions)
         * [System Configuration and Tuning](#system-configuration-and-tuning)
-        * [Sequence Diagram](#sequence-diagram)
-        * [Flow chart](#flow-chart)
-        * [UML Diagram](#uml-diagram)
         * [MongoDB Data Model](#mongodb-data-model)
-        * [High Level Architecture Diagram](#high-level-architecture-diagram)
     * [Design Considerations](#design-considerations)
         * [Why Java?](#why-java?)
-        * [Why Spring core and Spring Boot?](#why-spring-core-and-spring-boot?)
+        * [Why Spring core and Spring Boot?](#Why Spring core and Spring Boot?)
         * [Why Kafka Broker?](#why-kafka-broker?)
         * [Why MongoDB?](#why-mongoDB?)
     * [Project Structure](#project-structure)
+        * [UML Diagram](#uml-diagram)
     * [Tech Stack](#tech-stack)
     * [Improvements or Enhancements](#improvements-or-enhancements)
     * [Not covered](#not-covered)
@@ -37,6 +38,7 @@
 3. All services run in UTC timezone and tasks are required to be submitted in UTZ only. Though there
    isn’t any validation to check if the supplied time zone is not UTC.
 4. Additional state, SCHEDULED, is added for consistency.
+5. Validation error results of REST endpoints are not custom handled and out of current MVP scope.
 
 #### Design Aspects
 
@@ -75,6 +77,43 @@
            is to describe how different logic can be handled. The scheduling can be defined similar
            to High by using (defined by `${schedule.execution.medium.priority-ts}`), but the
            implementation is not handled.
+
+##### Components
+
+- **Producer API (producer-api)**:
+    - REST service which accepts/rejects and submit Job to Scheduler service through Kafka message
+      broker.
+- **Scheduler (scheduler)**:
+    - Service which consumes message log from Kafka and schedules Jobs in ScheduledThreadPool
+      executor.
+    - This also has a Daemon Thread which keeps on polling job from MongoDB and send it to
+      ScheduledThreadPool for processing. Implemented via Spring's @Scheduled.
+- **Scheduler Dashboard API (job-scheduler-dashboard-api)**:
+    - REST service which exposes endpoints to get the status and details of Job.
+    - Endpoint: `GET /api/job/status/{jobId}`
+- **Scheduler models (scheduler-models)**:
+    - Contains the common data models.
+
+##### High Level Architecture Diagram
+
+<p align="center">
+  <img src="design-images/Job-System-Architecture.jpg">
+  <br/>
+</p>
+
+##### Sequence Diagram
+
+<p align="center">
+  <img src="design-images/Job-Scheduler-Sequence-Diagram.jpg">
+  <br/>
+</p>
+
+##### Flow chart
+
+<p align="center">
+  <img src="design-images/JobSystem-Flowchart.jpg">
+  <br/>
+</p>
 
 ##### Algorithm
 
@@ -121,7 +160,7 @@ defined [here](scheduler/src/main/java/io/jobscheduler/scheduler/action/ActionFa
 
 As of now there isn't any implementation and job either succeeds or fails based on the return type.
 
-Examples of [Job Action](scheduler/src/main/java/io/jobscheduler/scheduler/action/Action.java) 
+Examples of [Job Action](scheduler/src/main/java/io/jobscheduler/scheduler/action/Action.java)
 types:
 
 1. push_notification - Succeeds the Job.
@@ -167,43 +206,6 @@ will depend on this.
             * `task.daemon.execution.interval.query.start-interval` # Inclusive
             * `task.daemon.execution.interval.query.elapsed-interval` # Exclusive
 
-##### Sequence Diagram
-
-<p align="center">
-  <img src="design-images/Job-Schedule-Sequence-Diagram.jpg">
-  <br/>
-</p>
-
-##### Flow chart
-
-<p align="center">
-  <img src="design-images/Job Scheduler-Flowchart.jpg">
-  <br/>
-</p>
-
-##### UML Diagram
-
-- Schedule Models
-
-<p align="center">
-  <img src="design-images/Schedule-Models.png">
-  <br/>
-</p>
-
-- Producer API
-  <p align="center">
-  <img src="design-images/ProducerApi.png">
-  <br/>
-
-</p>
-
-- Scheduler
-
-<p align="center">
-  <img src="design-images/scheduler.png">
-  <br/>
-</p>
-
 ##### MongoDB Data Model
 
 1. Collection: `TaskDocument`
@@ -235,13 +237,6 @@ will depend on this.
       SCHEDULED, QUEUED, RUNNING, SUCCESS, FAILED;
     }
     ```
-
-##### High Level Architecture Diagram
-
-<p align="center">
-  <img src="design-images/Architecture.jpg">
-  <br/>
-</p>
 
 #### Design Considerations
 
@@ -293,6 +288,29 @@ are not dependent maven modules.
     - Endpoint: `GET /api/job/status/{jobId}`
 - **Scheduler models (scheduler-models)**:
     - Contains the common data models.
+
+##### UML Diagram
+
+- Schedule Models
+
+<p align="center">
+  <img src="design-images/Schedule-Models.png">
+  <br/>
+</p>
+
+- Producer API
+  <p align="center">
+  <img src="design-images/ProducerApi.png">
+  <br/>
+
+</p>
+
+- Scheduler
+
+<p align="center">
+  <img src="design-images/scheduler.png">
+  <br/>
+</p>   
 
 #### Tech Stack
 

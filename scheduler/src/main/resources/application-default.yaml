@@ -19,6 +19,8 @@ spring:
     streams:
       application-id: ${KAFKA_JOB_TOPIC:job-task-system}
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:broker:9092}
+    listener:
+      missing-topics-fatal: true
     consumer:
       groupId: ${KAFKA_JOB_TOPIC:job-task-system}
       topic: ${KAFKA_JOB_TOPIC:job-task-system}
