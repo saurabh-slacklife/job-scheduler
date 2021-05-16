@@ -17,10 +17,3 @@ jobs:
       - uses: actions/checkout@v2
       - name: Maven build all modules
         run: ./scripts/build.sh
-  docker-build:
-    needs: maven-build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Docker build all modules
-        run:  docker-compose -f docker-compose.yml build --no-cache --parallel
