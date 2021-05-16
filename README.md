@@ -16,10 +16,10 @@
         * [System Configuration and Tuning](#system-configuration-and-tuning)
         * [MongoDB Data Model](#mongodb-data-model)
     * [Design Considerations](#design-considerations)
-        * [Why Java?](#why-java?)
-        * [Why Spring core and Spring Boot?](#Why Spring core and Spring Boot?)
-        * [Why Kafka Broker?](#why-kafka-broker?)
-        * [Why MongoDB?](#why-mongoDB?)
+        * [Why Java?](#why-java)
+        * [Why Spring core and Spring Boot?](#why-spring-core-and-spring-boot)
+        * [Why Kafka Broker?](#why-kafka-broker)
+        * [Why MongoDB?](#why-mongodb)
     * [Project Structure](#project-structure)
         * [UML Diagram](#uml-diagram)
     * [Tech Stack](#tech-stack)
@@ -242,19 +242,19 @@ will depend on this.
 
 **NOTE**: Keeping all the below questions open, open for discussion.
 
-##### Why Java?
+##### Why Java
 
     * Why not Python?
 
-##### Why Spring core and Spring Boot?
+##### Why Spring core and Spring Boot
 
     * Why not Qaurkus or Dropwizard
 
-##### Why Kafka Broker?
+##### Why Kafka Broker
 
     * Why not any other logging queue?
 
-##### Why MongoDB?
+##### Why MongoDB
 
     * Why not Elasticsearch, HBase, Cassandra or RDBMS?
 
